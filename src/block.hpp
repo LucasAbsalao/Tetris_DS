@@ -11,15 +11,18 @@ class Block{
         vector<Vector2> blocks;
         int size;
         Color color;
+        int idx; //TODO
 
     public:
-        Block(int position[2], int size, Color color);
+        Block(int position[2], int size, int idx, Color color);
         void move(char direction);
         void draw(Vector2 offset);
         template<class charT, class charTraits>
         friend basic_ostream<charT,charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block);
         array<int,2> getPosition() const;
         vector<Vector2> getBlocks() const;
+        int getColor() const;
+        int *GetBoundary() const;
 };
 
 template<class charT, class charTraits>
