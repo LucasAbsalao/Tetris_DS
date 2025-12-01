@@ -35,10 +35,10 @@ void Grid::draw(){
 }
 
 void Grid::generateBlock(){
-    int position[2] = {0,generateRandomNumber(grid_width-3)};//TODO: Talvez tirar essa geração aleatória
+    int position[2] = {0,grid_width/2};//{0,generateRandomNumber(grid_width-3)};//TODO: Talvez tirar essa geração aleatória
     cout << position[1] << endl;
-    int idx = generateRandomNumber(colors.size());
-    b = make_unique<Block>(position, size, idx, colors[idx]);
+    int idx = generateRandomNumber(colors.size()-1);
+    b = make_unique<Block>(position, size, idx+1, colors[idx+1]);
     cout << *b << endl;
 }
 
@@ -116,7 +116,7 @@ void Grid::update(int& count, int limit){
 void Grid::setGrid(int x, int y, int idx_color){
     if(x >= 0 && x < grid_height && y >= 0 && y < grid_width){
         grid[x][y] = idx_color;
-        check_how_many_blocks[x]++;
+        if(idx_color!=backgroundColor)check_how_many_blocks[x]++;
     }
 }
 
@@ -127,14 +127,41 @@ int Grid::getCompletedLine(int& score){
             score+=100;
             last_line = i;
             resetLine(i);
-            check_how_many_blocks[i] = 0;
         }
     }
     return last_line;
+}
+
+void Grid::reallocateLines(int line){
+    int temp_line = line;
+    for(int i=line-1;i>=0;i--){
+        if(check_how_many_blocks[i]!=0){
+            for(int j=0;j<grid_width;j++){
+                setGrid(temp_line,j,grid[i][j]);
+            }
+            resetLine(i);
+            temp_line--;
+        }
+    }
 }
 
 void Grid::resetLine(int idx_line){
     for(int j=0;j<grid_width;j++){
         setGrid(idx_line, j, backgroundColor);
     }
+    check_how_many_blocks[idx_line] = 0;
+}
+
+string Grid::strGrid(){
+    for(int i=0;i<check_how_many_blocks.size();i++) cout << check_how_many_blocks[i]<<" ";
+    cout<<endl;
+    string str_grid;
+    for (int i=0;i<grid_height;i++){
+        str_grid += check_how_many_blocks[i] + ": ";
+        for(int j=0;j<grid_width;j++){
+            str_grid += to_string(grid[i][j]) + " ";
+        }
+        str_grid += '\n';
+    }
+    return str_grid;
 }

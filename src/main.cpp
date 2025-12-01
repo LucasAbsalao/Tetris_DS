@@ -1,8 +1,9 @@
 #include <raylib.h>
 #include<iostream>
+#include<string>
 #include "game.hpp"
 
-#define SCREEN_WIDTH 600
+#define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define NORMAL_SPEED 15
 #define FAST_SPEED 2
@@ -28,6 +29,7 @@ int main(){
         DrawText("TETRIS", 145, 10, 50, {0,0,0,255});
         sprintf(str_score, "Score: %d", score);
         DrawText(str_score, 400, 50, 30, {0,0,0,255});
+        DrawText(grid.strGrid().c_str(), 900, 20, 20, {0,0,0,255});
         ClearBackground(VIOLET);
 
         if(IsKeyDown(KEY_DOWN) && !goDown){
@@ -44,8 +46,8 @@ int main(){
         grid.draw();
         grid.update(count, limit);
 
-        int x = grid.getCompletedLine(score);
-
+        int completed_line = grid.getCompletedLine(score);
+        if(completed_line!=-1) grid.reallocateLines(completed_line);
         EndDrawing();
     }
 
