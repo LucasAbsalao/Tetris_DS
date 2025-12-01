@@ -1,7 +1,7 @@
 #include <raylib.h>
 #include<iostream>
 #include<string>
-#include "game.hpp"
+#include "game_lucas.hpp"
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720

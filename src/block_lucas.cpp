@@ -1,6 +1,6 @@
 #include<raylib.h>
 #include<iostream>
-#include"block.hpp"
+#include"block_lucas.hpp"
 
 Block::Block(int position[2], int size, int idx, Color color): idx(idx), position({position[0], position[1]}), color(color), size(size){
     blocks.push_back({0,0});

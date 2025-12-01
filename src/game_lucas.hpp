@@ -5,7 +5,7 @@
 #include<random>
 #include<ctime>
 
-#include "block.hpp"
+#include "block_lucas.hpp"
 
 
 using namespace std;
@@ -38,7 +38,6 @@ class Grid
         bool checkCollisionFloor(); //Game
         int getCompletedLine(int& score);
         void reallocateLines(int line);
-        int geIdxProjection(); //game
         void resetLine(int idx_line);
         static vector<Color> getColors();//Game
 };
