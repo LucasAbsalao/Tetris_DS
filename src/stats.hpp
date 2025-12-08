@@ -3,6 +3,7 @@
 #include<raylib.h>
 #include<array>
 #include<vector>
+#include<iostream>
 
 class Stat{
     private:
@@ -15,12 +16,15 @@ class Stat{
         Stat();
         Stat(int qtt_of_blocks);
         void resetStats();
-        int updateScore(int lines_destroyed);
+        void updateScore(int lines_destroyed);
+        void updateLevel();
+        void update(int lines_destroyed);
         void updateHowManyBlocks(int type_of_block);
 
         int getScore();
         int getLevel();
         std::vector<int> getHowManyBlocks();
         std::string strScore();
+        std::string strLevel();
 
 };

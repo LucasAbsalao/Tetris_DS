@@ -13,9 +13,25 @@ void Stat::resetStats(){
     std::fill(how_many_blocks.begin(), how_many_blocks.end(), 0);
 }
 
-int Stat::updateScore(int lines_destroyed){
-    score += points[lines_destroyed]*(level+1);
-    return score;
+void Stat::updateScore(int lines_destroyed){
+    score += points[lines_destroyed-1]*(level+1);
+}
+
+void Stat::updateLevel(){
+    if(score>400){
+        level = 1;
+    }
+    else if(score>4000){
+        level = 2;
+    }
+    else if(score>6000){
+        level = 3;
+    }
+}
+
+void Stat::update(int lines_destroyed){
+    updateScore(lines_destroyed);
+    updateLevel();
 }
 
 void Stat::updateHowManyBlocks(int type_of_block){
@@ -34,4 +50,8 @@ std::vector<int> Stat::getHowManyBlocks(){
 
 std::string Stat::strScore(){
     return std::to_string(score);
+}
+
+std::string Stat::strLevel(){
+    return std::to_string(level);
 }

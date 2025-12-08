@@ -33,6 +33,7 @@ class Game
         unique_ptr<Block> generateBlock();
         int generateRandomNumber(int limit);
         void draw();
+        void drawUI();
         void run();
         void update();
         Block getBlock();

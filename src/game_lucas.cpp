@@ -1,7 +1,7 @@
 #include "game_lucas.hpp"
 #include "colors.hpp"
 
-Game::Game(int normalSpeed, int fast_speed, Texture2D background): grid(make_unique<Grid>(10,24,25,(Vector2){125,65},0)), 
+Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(make_unique<Grid>(10,24,25,(Vector2){125,65},0)), 
                                                                    colors(Colors::getColors()), 
                                                                    block(generateBlock()), 
                                                                    nextBlock(generateBlock()),
@@ -18,20 +18,35 @@ void Game::draw(){
     DrawTextureEx(backgroundImg, (Vector2){0.0,0.0}, 0.0f,1.0,WHITE);
     DrawTextureEx(backgroundImg, (Vector2){(float)backgroundImg.width,0.0}, 0.0f,1.0,WHITE);
 
-    char str_score[50];
-    DrawText("TETRIS", 145, 10, 50, {255,255,255,255});
-    sprintf(str_score, "Score: %d", stat.getScore());
-    DrawText(str_score, 400, 50, 30, {255,255,255,255});
-    DrawText(grid->strGrid().c_str(), 900, 20, 20, {255,255,255,255});
-
     grid->draw();
-    Rectangle rec({grid->getPosition().x, grid->getPosition().y, (float)grid->getGridWidth()*grid->getSize(), (float)grid->getGridHeight()*grid->getSize()});
-    DrawRectangleLinesEx(rec, 4.0,{255,255,255,255});
-    if(block!=nullptr){ //DrawBlocks
+
+    drawUI();
+
+    if(block!=nullptr){ //TODO: DrawBlocks
         block->draw(grid->getPosition());
         int projection_line = getProjectionLine();
         if(projection_line!=-1) block->drawProjection(grid->getPosition(), projection_line);
     }
+}
+
+void Game::drawUI(){ //TODO: Automatizar os valores de score e level para eles ficarem centralizados
+    char str_score[50];
+    DrawText("TETRIS", 145, 10, 50, {255,255,255,255});
+
+    DrawText("SCORE", 455, 50, 30, {255,255,255,255});
+    DrawRectangle(400,75,200,90,colors[0]);
+    DrawText(stat.strScore().c_str(), 490, 90, 60, {255,255,255,255});
+
+    DrawText("NEXT BLOCK", 400, 180, 30, {255,255,255,255});
+    DrawRectangle(400,205,200,90,colors[0]);
+
+    DrawText("LEVEL", 455, 550, 30, {255,255,255,255});
+    DrawRectangle(400,575,200,90,colors[0]);
+    DrawText(stat.strLevel().c_str(), 490, 590, 60, {255,255,255,255});
+
+    Rectangle rec({grid->getPosition().x-4, grid->getPosition().y-4, (float) grid->getGridWidth()*grid->getSize() + 8, (float)grid->getGridHeight()*grid->getSize() + 8});
+    DrawRectangleLinesEx(rec, 4.0,{255,255,255,255});
+    //DrawText(grid->strGrid().c_str(), 900, 20, 20, {255,255,255,255});
 }
 
 unique_ptr<Block> Game::generateBlock(){
@@ -47,7 +62,37 @@ int Game::generateRandomNumber(int limit){
 }
 
 void Game::run(){
-    if(IsKeyDown(KEY_DOWN) && !goDown){ //TODO: handle input
+
+    getMovement();
+    update();
+
+    int count_lines = 0;
+    int completed_line = grid->getCompletedLine(count_lines);
+    if(completed_line!=-1) {
+        stat.update(count_lines);
+        grid->reallocateLines(completed_line);
+    }
+}
+
+void Game::update(){
+    if(delayToGoDown<actualSpeed){
+        delayToGoDown++;
+    }
+    else{
+        if(checkCollisionFloor()){
+            grid->insertBlock(getBlock());
+            swap(block, nextBlock);
+            nextBlock = generateBlock();
+        }
+        else{
+            block->moveDirection('D');
+        }
+        delayToGoDown=0;
+    }
+}
+
+void Game::getMovement(){
+    if(IsKeyDown(KEY_DOWN) && !goDown){
         actualSpeed = fastSpeed;
         goDown = true;
     }
@@ -56,14 +101,12 @@ void Game::run(){
         delayToGoDown = 0;
         goDown = false;
     }
-
-    getMovement();
-    update();
-
-    int count_lines = 0;
-    int completed_line = grid->getCompletedLine(count_lines);
-    stat.updateScore(count_lines);
-    if(completed_line!=-1) grid->reallocateLines(completed_line);
+    if(IsKeyPressed(KEY_RIGHT) && !CheckCollisionWall('R')){
+        block->moveDirection('R');
+    }
+    else if(IsKeyPressed(KEY_LEFT) && !CheckCollisionWall('L')){
+        block->moveDirection('L');
+    }
 }
 
 bool Game::CheckCollisionWall(char direction){
@@ -106,34 +149,6 @@ int Game::getProjectionLine(){
     }
     return -1;
 }
-
-
-void Game::getMovement(){
-    if(IsKeyPressed(KEY_RIGHT) && !CheckCollisionWall('R')){
-        block->moveDirection('R');
-    }
-    else if(IsKeyPressed(KEY_LEFT) && !CheckCollisionWall('L')){
-        block->moveDirection('L');
-    }
-}
-
-void Game::update(){
-    if(delayToGoDown<actualSpeed){
-        delayToGoDown++;
-    }
-    else{
-        if(checkCollisionFloor()){
-            grid->insertBlock(getBlock());
-            swap(block, nextBlock);
-            nextBlock = generateBlock();
-        }
-        else{
-            block->moveDirection('D');
-        }
-        delayToGoDown=0;
-    }
-}
-
 
 Block Game::getBlock(){
     return *block;
