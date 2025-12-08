@@ -18,14 +18,14 @@ void Stat::updateScore(int lines_destroyed){
 }
 
 void Stat::updateLevel(){
-    if(score>400){
-        level = 1;
+    if(score>=3000){
+        level = 3;
     }
-    else if(score>4000){
+    else if(score>=1500){
         level = 2;
     }
-    else if(score>6000){
-        level = 3;
+    else if(score>=400){
+        level = 1;
     }
 }
 
