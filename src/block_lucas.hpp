@@ -1,3 +1,5 @@
+#pragma once
+
 #include<raylib.h>
 #include<vector>
 #include<array>
@@ -15,8 +17,10 @@ class Block{
 
     public:
         Block(int position[2], int size, int idx, Color color);
-        void move(char direction);
+        void moveDirection(char direction);
+        void move(int x, int y); //Colocar como private
         void draw(Vector2 offset);
+        void drawProjection(Vector2 offset, int line);
         template<class charT, class charTraits>
         friend basic_ostream<charT,charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block);
         array<int,2> getPosition() const;

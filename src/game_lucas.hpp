@@ -6,38 +6,39 @@
 #include<ctime>
 
 #include "block_lucas.hpp"
+#include "grid_lucas.hpp"
+#include "stats.hpp"
 
 
 using namespace std;
 
-class Grid
+class Game
 {
     private:
-        vector<vector<int>> grid;
-        vector<int> check_how_many_blocks;
-        int grid_width;
-        int grid_height;
-        int size;
-        int backgroundColor;
         vector<Color> colors;
-        Vector2 position;
-        unique_ptr<Block> b;
+        unique_ptr<Grid> grid;
+        unique_ptr<Block> block;
+        unique_ptr<Block> nextBlock;
+        Texture2D backgroundImg;
+        Stat stat;
+
+        int delayToGoDown;
+        int normalSpeed;
+        int fastSpeed;
+        int actualSpeed;
+        bool goDown;
 
     public:
-        Grid(int grid_width, int grid_height, int size, Vector2 position);
-        Grid(int grid_width, int grid_height, int size, Vector2 position, int backgroundColor);
-        void generateBlock(); //Game
-        int generateRandomNumber(int limit); //Game
-        string strGrid();
+        Game(int normalSpeed, int fast_speed, Texture2D background);
+        unique_ptr<Block> generateBlock();
+        int generateRandomNumber(int limit);
         void draw();
-        void setGrid(int x, int y, int idx_color);
-        void update(int& count, int limit); //Game
-        Block getBlock();//Game
-        void getMovement();//Game
-        bool CheckCollisionWall(char direction); //Game
-        bool checkCollisionFloor(); //Game
-        int getCompletedLine(int& score);
-        void reallocateLines(int line);
-        void resetLine(int idx_line);
-        static vector<Color> getColors();//Game
+        void run();
+        void update();
+        Block getBlock();
+        void getMovement();
+        bool CheckCollisionWall(char direction);
+        bool checkCollisionFloor();
+        bool checkCollisionFloor(int positionX);
+        int getProjectionLine(); 
 };

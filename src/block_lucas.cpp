@@ -9,7 +9,7 @@ Block::Block(int position[2], int size, int idx, Color color): idx(idx), positio
     blocks.push_back({1,1});
 }
 
-void Block::move(char direction){
+void Block::moveDirection(char direction){
     switch (direction){
         case 'U':
             position[0]--;
@@ -24,6 +24,11 @@ void Block::move(char direction){
             position[1]++;
             break;
     }
+}
+
+void Block::move(int x, int y){
+    position[0] += x;
+    position[1] += y;
 }
 
 void Block::draw(Vector2 offset){
@@ -45,6 +50,14 @@ vector<Vector2> Block::getBlocks() const{
 
 int Block::getColor() const{
     return idx;
+}
+
+void Block::drawProjection(Vector2 offset, int line){
+    for(int i=0;i<blocks.size();i++){
+        int posY = blocks[i].x + line;
+        int posX = blocks[i].y + position[1];
+        DrawRectangleLines(offset.x + size*posX, offset.y + size*posY, size, size, color);
+    }
 }
 
 int * Block::GetBoundary() const{
