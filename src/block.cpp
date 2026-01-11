@@ -2,6 +2,8 @@
 #include<iostream>
 #include"block.hpp"
 
+// teste
+
 Block::Block(int position[2], int size, int idx_color, Color color): idx_color(idx_color), position({position[0], position[1]}), color(color), size(size), rotationState(0){
     id = 1;
     blocks[0] = { {0,0}, {0,1}, {1,1}, {1,2} };
