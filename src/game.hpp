@@ -5,8 +5,8 @@
 #include<random>
 #include<ctime>
 
-#include "block_lucas.hpp"
-#include "grid_lucas.hpp"
+#include "block.hpp"
+#include "grid.hpp"
 #include "stats.hpp"
 
 

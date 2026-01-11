@@ -6,7 +6,7 @@
 #include<ctime>
 
 #include"colors.hpp"
-#include"block_lucas.hpp"
+#include"block.hpp"
 
 using namespace std;
 

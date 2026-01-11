@@ -1,4 +1,4 @@
-#include "game_lucas.hpp"
+#include "game.hpp"
 #include "colors.hpp"
 
 Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(make_unique<Grid>(10,24,25,(Vector2){125,65},0)), 
@@ -107,6 +107,13 @@ void Game::getMovement(){
     else if(IsKeyPressed(KEY_LEFT) && !CheckCollisionWall('L')){
         block->moveDirection('L');
     }
+    if(IsKeyPressed(KEY_UP)){
+        RotateBlock();
+    }
+}
+
+void RotateBlock(){
+    block.rotate();
 }
 
 bool Game::CheckCollisionWall(char direction){

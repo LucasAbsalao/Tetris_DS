@@ -1,4 +1,4 @@
-#include "grid_lucas.hpp"
+#include "grid.hpp"
 
 Grid::Grid(int grid_width, int grid_height, int size, Vector2 position): grid_width(grid_width), 
                                                        grid_height(grid_height), 
