@@ -108,12 +108,12 @@ void Game::getMovement(){
         block->moveDirection('L');
     }
     if(IsKeyPressed(KEY_UP)){
-        RotateBlock();
+        rotateBlock();
     }
 }
 
-void RotateBlock(){
-    block.rotate();
+void Game::rotateBlock(){
+    block->rotate();
 }
 
 bool Game::CheckCollisionWall(char direction){

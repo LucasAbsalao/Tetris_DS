@@ -26,7 +26,7 @@ class Block{
         void move(int x, int y); //Colocar como private
         void draw(Vector2 offset);
         void drawProjection(Vector2 offset, int line);
-        void Rotate();
+        void rotate();
         template<class charT, class charTraits>
         friend basic_ostream<charT,charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block);
         array<int,2> getPosition() const;
@@ -39,7 +39,7 @@ template<class charT, class charTraits>
 basic_ostream<charT, charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block){
     aStream << block.getPosition()[0] << ", " << block.getPosition()[1] << ": {";
     for(int i=0;i<4;i++){
-        aStream << "(" << block.blocks[rotationState][i].x << ", " << block.blocks[rotationState][i].y << ") ";
+        aStream << "(" << block.blocks.at(block.rotationState)[i].x << ", " << block.blocks.at(block.rotationState)[i].y << ") ";
     }
     aStream << "}";
     return aStream;

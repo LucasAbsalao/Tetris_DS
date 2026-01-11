@@ -36,6 +36,7 @@ class Game
         void drawUI();
         void run();
         void update();
+        void rotateBlock();
         Block getBlock();
         void getMovement();
         bool CheckCollisionWall(char direction);
