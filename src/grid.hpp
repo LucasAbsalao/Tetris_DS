@@ -32,6 +32,7 @@ class Grid
         int getCompletedLine(int& count);
         void reallocateLines(int line);
         void resetLine(int idx_line);
+        bool isThereABlockInTheLine(int line);
         //TODO fazer os gets
 
         int getBackgroundColor();

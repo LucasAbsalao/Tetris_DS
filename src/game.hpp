@@ -27,6 +27,7 @@ class Game
         int fastSpeed;
         int actualSpeed;
         bool goDown;
+        bool gameOver;
 
     public:
         Game(int normalSpeed, int fast_speed, Texture2D background);
@@ -43,4 +44,8 @@ class Game
         bool checkCollisionFloor();
         bool checkCollisionFloor(int positionX);
         int getProjectionLine(); 
+        void checkGameOver();
+
+        
+        bool getGameOver();
 };

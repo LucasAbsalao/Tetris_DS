@@ -11,7 +11,8 @@ Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(make_uniq
                                                                    fastSpeed(fastSpeed),
                                                                    actualSpeed(normalSpeed),
                                                                    goDown(false),
-                                                                   delayToGoDown(0)
+                                                                   delayToGoDown(0),
+                                                                   gameOver(false)
 {}
 
 void Game::draw(){
@@ -89,6 +90,13 @@ void Game::update(){
         }
         delayToGoDown=0;
     }
+    checkGameOver();
+}
+
+void Game::checkGameOver(){
+    if(grid->isThereABlockInTheLine(0)){
+        gameOver = true;
+    }
 }
 
 void Game::getMovement(){
@@ -159,4 +167,8 @@ int Game::getProjectionLine(){
 
 Block Game::getBlock(){
     return *block;
+}
+
+bool Game::getGameOver(){
+    return gameOver;
 }

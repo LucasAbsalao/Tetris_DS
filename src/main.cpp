@@ -78,7 +78,7 @@ int main(){
             }
         }
 
-        if (WindowShouldClose()) {
+        if (WindowShouldClose() || game.getGameOver() == true) {
             gameState = EXITING;
         }
 

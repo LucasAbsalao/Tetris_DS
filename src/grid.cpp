@@ -29,6 +29,15 @@ void Grid::draw(){
     }
 }
 
+bool Grid::isThereABlockInTheLine(int line){
+    for(int i=0;i<grid_width;i++){
+        if(grid[line][i]!=0){
+            return true;
+        }
+    }
+    return false;
+}
+
 void Grid::insertBlock(Block block){
     for(int i = 0; i < block.getBlocks().size(); i++){
         setGrid(block.getPosition()[0] + block.getBlocks()[i].x,
