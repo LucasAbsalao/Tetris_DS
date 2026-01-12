@@ -14,7 +14,7 @@ Block::Block(int position[2], int size, int idx_color, Color color): idx_color(i
 
 void Block::rotate(){
     rotationState++;
-    if(rotationState==(int)cells.size()){
+    if(rotationState==(int)blocks.size()){
         rotationState = 0;
     }
 }
@@ -42,9 +42,9 @@ void Block::move(int x, int y){
 }
 
 void Block::draw(Vector2 offset){
-    for(int i=0;i<blocks[rotationState].size();i++){
-        int posY = blocks[rotationState][i].x + position[0];
-        int posX = blocks[rotationState][i].y + position[1];
+    for(int i=0;i<blocks.at(rotationState).size();i++){
+        int posY = blocks.at(rotationState)[i].x + position[0];
+        int posX = blocks.at(rotationState)[i].y + position[1];
         DrawRectangle(offset.x + size*posX, offset.y + size*posY, size, size, color);
         DrawRectangleLines(offset.x + size*posX, offset.y + size*posY, size, size, {0,0,0,255});
     }
@@ -55,17 +55,17 @@ array<int,2> Block::getPosition() const{
 }
 
 vector<Position> Block::getBlocks() const{
-    return blocks[rotationState];
+    return blocks.at(rotationState);
 }
 
 int Block::getColor() const{
-    return idx;
+    return idx_color;
 }
 
 void Block::drawProjection(Vector2 offset, int line){
-    for(int i=0;i<blocks[rotationState].size();i++){
-        int posY = blocks[rotationState][i].x + line;
-        int posX = blocks[rotationState][i].y + position[1];
+    for(int i=0;i<blocks.at(rotationState).size();i++){
+        int posY = blocks.at(rotationState)[i].x + line;
+        int posX = blocks.at(rotationState)[i].y + position[1];
         DrawRectangleLines(offset.x + size*posX, offset.y + size*posY, size, size, color);
     }
 }
@@ -73,20 +73,20 @@ void Block::drawProjection(Vector2 offset, int line){
 int *Block::GetBoundary() const{
     int *bounds = (int *) malloc(3*sizeof(int));
     int max = -1;
-    for(int i=0;i<blocks[rotationState].size();i++){
-        if(blocks[rotationState][i].x>max) max=blocks[rotationState][i].x;
+    for(int i=0;i<blocks.at(rotationState).size();i++){
+        if(blocks.at(rotationState)[i].x>max) max=blocks.at(rotationState)[i].x;
     }
     bounds[0] = max;
 
     max = 320000;
-    for(int i=0;i<blocks[rotationState].size();i++){
-        if(blocks[rotationState][i].x<max) max=blocks[rotationState][i].x;
+    for(int i=0;i<blocks.at(rotationState).size();i++){
+        if(blocks.at(rotationState)[i].x<max) max=blocks.at(rotationState)[i].x;
     }
     bounds[1] = max;
 
     max = -1;
-    for(int i=0;i<blocks[rotationState].size();i++){
-        if(blocks[rotationState][i].y>max) max=blocks[rotationState][i].x;
+    for(int i=0;i<blocks.at(rotationState).size();i++){
+        if(blocks.at(rotationState)[i].y>max) max=blocks.at(rotationState)[i].x;
     }
     bounds[2] = max;
 
