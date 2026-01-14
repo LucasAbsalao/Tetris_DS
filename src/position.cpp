@@ -1,4 +1,6 @@
-#include"position.hpp"
+#include "position.hpp"
 
-Position::Position(int x, int y): x(x), y(y) 
+// Initializes a position with given coordinates
+Position::Position(int x, int y)
+    : x(x), y(y)
 {}

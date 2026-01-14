@@ -1,8 +1,10 @@
 #pragma once
 
-class Position{
-    public:
-        Position(int x, int y);
-        int x;
-        int y;
+// Represents a relative position inside a block
+struct Position {
+    int x;  // Row offset
+    int y;  // Column offset
+
+    // Creates a position with given coordinates
+    Position(int x, int y) : x(x), y(y) {}
 };
