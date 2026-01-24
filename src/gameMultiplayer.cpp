@@ -4,6 +4,7 @@ GameMultiplayer::GameMultiplayer(int normalSpeed, int fast_speed, Texture2D back
                                                                                          net(std::make_shared<NetworkManager>()),
                                                                                          address_host("127.0.0.1"),
                                                                                          port_host(7777),
+                                                                                         username(""),
                                                                                          id_client(-1)
 {}
 
@@ -16,6 +17,7 @@ GameMultiplayer::GameMultiplayer(int normalSpeed,
                                                  net(ptr_net),
                                                  address_host(address),
                                                  port_host(port_host),
+                                                 username(""),
                                                  id_client(-1)
 {} 
 
@@ -47,7 +49,7 @@ void GameMultiplayer::insertBlockInGrid(){
 void GameMultiplayer::rotateBlock(){
     Game::rotateBlock();
     BlockPacket packet = getBlock().toPacket(id_client);
-    net->sendStruct(packet, PacketType::Unreliable);
+    net->sendStruct(packet);
 }
 
 void GameMultiplayer::updateGridStat(int count_lines, int completed_line){
@@ -73,5 +75,23 @@ void GameMultiplayer::setPortHost(int portServer){
 }
 
 void GameMultiplayer::setID(SetIdPacket packet){
+    std::cout<<"My id: " << packet.id << "\n";
     this->id_client = packet.id;
+
+    UsernamePacket namePacket;
+    namePacket.type = MessageType::USERNAME;
+    namePacket.id = this->id_client;
+
+    std::strncpy(namePacket.username, this->username.c_str(), sizeof(namePacket.username) - 1);
+    namePacket.username[USERNAME_MAX_LENGTH - 1] = '\0'; // Garante o nulo
+
+    net->sendStruct(namePacket);
+}
+
+void GameMultiplayer::setUsername(std::string name){
+    this->username = name;
+}
+
+int GameMultiplayer::getId(){
+    return id_client;
 }

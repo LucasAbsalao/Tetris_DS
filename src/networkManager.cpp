@@ -84,11 +84,11 @@ void NetworkManager::readNetwork(){
     while(enet_host_service(client, &event, 0)>0){
         switch(event.type){
             case ENET_EVENT_TYPE_RECEIVE:{
-                printf("A packet of length %lu was received from %x:%u on channel %d.\n",
-                        event.packet->dataLength,
-                        event.peer->address.host,
-                        event.peer->address.port,
-                        event.channelID);
+                // printf("A packet of length %lu was received from %x:%u on channel %d.\n",
+                //         event.packet->dataLength,
+                //         event.peer->address.host,
+                //         event.peer->address.port,
+                //         event.channelID);
 
                 if(event.packet->dataLength > 0){
                     uint8_t *rawData = static_cast<uint8_t*>(event.packet->data);

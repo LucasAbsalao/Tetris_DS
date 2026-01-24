@@ -38,6 +38,7 @@ class Game
 
     public:
         Game(int normalSpeed, int fast_speed, Texture2D background);
+        Game(int normalSpeed, int fastSpeed, Texture2D background, float position_x, float position_y);
         unique_ptr<Block> generateBlock();
         int generateRandomNumber(int limit);
         void draw();

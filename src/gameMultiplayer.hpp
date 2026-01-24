@@ -10,6 +10,7 @@ class GameMultiplayer : public Game {
         std::shared_ptr<NetworkManager> net;
         std::string address_host;
         int port_host;
+        std::string username;
         uint8_t id_client;
 
     public:
@@ -22,8 +23,11 @@ class GameMultiplayer : public Game {
         virtual void rotateBlock() override;
         virtual void insertBlockInGrid() override;
         virtual void updateGridStat(int count_lines, int completed_line) override;
+        
+        int getId();
 
         void setAddress(std::string addressIP);
         void setPortHost(int portServer);
         void setID(SetIdPacket packet);
+        void setUsername(std::string name);
 };

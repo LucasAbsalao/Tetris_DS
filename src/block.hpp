@@ -35,6 +35,7 @@ class Block{
         array<int,2> getPosition() const;
         vector<Position> getBlocks() const;
         int getColor() const;
+        int getID() const;
         int *GetBoundary() const;
 
 

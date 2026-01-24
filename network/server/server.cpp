@@ -37,10 +37,10 @@ void Server::sendPacket(ENetPeer *peer, const void *data, size_t size, PacketTyp
 void Server::broadcastPacket(const void *data, size_t size, PacketType flag){
     int enetFlag = static_cast<int>(flag);
 
-    ENetPacket *packet = enet_packet_create(data, size, ENET_PACKET_FLAG_RELIABLE);
+    ENetPacket *packet = enet_packet_create(data, size, enetFlag);
 
     int channel = (flag == PacketType::Reliable) ? 1 : 0;
-    enet_host_broadcast(server, 0, packet);
+    enet_host_broadcast(server, channel, packet);
 }
 
 void Server::run(){
@@ -60,10 +60,9 @@ void Server::parseMessage(int sender_id, void *data){ //TODO: Check size
         if(client_map[packet->id]){
             client_map[packet->id]->setUsername(packet->username);
             std::cout << "Username: " << packet->username << "\n";
-            broadcastStruct(*packet)
+            broadcastStruct(*packet);
         }
     }
-
     else if(*type == MessageType::GRID){
         GridPacket *packet = reinterpret_cast<GridPacket*>(data);
         broadcastStruct(*packet);
@@ -80,7 +79,6 @@ void Server::parseMessage(int sender_id, void *data){ //TODO: Check size
 
 void Server::handlePacket(){ //TODO: Test if the messageType variable is already initialized the right way
     while(enet_host_service(server, &event, 0)>0){
-        std::cout << "a\n";
         switch(event.type){
             case ENET_EVENT_TYPE_CONNECT:{
                 std::cout << "A new client is trying to connect from " << event.peer->address.host << ":" << event.peer->address.port << "\n";
@@ -95,9 +93,8 @@ void Server::handlePacket(){ //TODO: Test if the messageType variable is already
                     username_connected_packet.type = MessageType::USERNAME;
                     username_connected_packet.id = client_id;
 
-                    size_t size_to_copy = std::min(username.size(), sizeof(username_connected_packet.username) - 1);
         
-                    std::strncpy(username_connected_packet.username, username.data(), size_to_copy);
+                    std::strncpy(username_connected_packet.username, username.data(), sizeof(username_connected_packet.username) - 1);
                     
                     username_connected_packet.username[sizeof(username_connected_packet.username)-1] = '\0'; //Assurance that the last byte of username is always 0
                     sendStruct(event.peer, username_connected_packet);
@@ -119,11 +116,11 @@ void Server::handlePacket(){ //TODO: Test if the messageType variable is already
                 break;
             }
             case ENET_EVENT_TYPE_RECEIVE:{
-                printf("A packet of length %lu was received from %x:%u on channel %d.\n",
-                        event.packet->dataLength,
-                        event.peer->address.host,
-                        event.peer->address.port,
-                        event.channelID);
+                // printf("A packet of length %lu was received from %x:%u on channel %d.\n",
+                //         event.packet->dataLength,
+                //         event.peer->address.host,
+                //         event.peer->address.port,
+                //         event.channelID);
 
                 parseMessage(static_cast<ClientData*>(event.peer->data)->getId(), event.packet->data);
                 enet_packet_destroy(event.packet);

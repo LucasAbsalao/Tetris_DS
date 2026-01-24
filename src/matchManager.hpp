@@ -4,14 +4,21 @@
 #include"network/networkStructures.hpp"
 
 class MatchManager {
-    std::shared_ptr<networkManager> net;
-    GameMultiplayer player1;
-    GameRemote *player2;
+    private:
+        int savedNormalSpeed;
+        int savedFastSpeed;
+        Texture2D savedBackground;
 
-public:
-    MatchManager(int normalSpeed, int fast_speed, Texture2D background, const std::string& address, int port_host);
-    ~MatchManager();
-    void createRemoteGame(UsernamePacket packet);
-    void draw();
-    void update();
+        std::shared_ptr<NetworkManager> net;
+        GameMultiplayer player1;
+        GameRemote *player2;
+
+    public:
+        MatchManager(int normalSpeed, int fast_speed, Texture2D background, const std::string& address, int port_host);
+        ~MatchManager();
+        void init();
+        void createRemoteGame(UsernamePacket packet);
+        void setLocalPlayerName(const std::string& name);
+        void draw();
+        void run();
 };

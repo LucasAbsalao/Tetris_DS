@@ -117,3 +117,7 @@ int *Block::GetBoundary() const{
 
     return bounds;
 }
+
+int Block::getID() const{
+    return this->id;
+}

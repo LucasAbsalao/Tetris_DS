@@ -1,24 +1,13 @@
 #include "gameRemote.hpp"
 
 GameRemote::GameRemote(int normalSpeed, 
-                       int fast_speed, 
+                       int fastSpeed, 
                        Texture2D background,
                        int position_x,
                        int position_y,
-                       uint8_t id_client): grid(make_unique<Grid>(10,24,25,(Vector2){position_x,position_y},0)), 
-                                           colors(Colors::getColors()), 
-                                           block(nullptr), 
-                                           nextBlock(nullptr),
-                                           backgroundImg(background),
-                                           stat(Stat()),
-                                           position_x(position_x),
-                                           position_y(position_y),
-                                           normalSpeed(normalSpeed),
-                                           fastSpeed(fastSpeed),
-                                           actualSpeed(normalSpeed),
-                                           goDown(false),
-                                           delayToGoDown(0),
-                                           gameOver(false)
+                       uint8_t id_client): Game(normalSpeed, fastSpeed, background, position_x, position_y),
+                                           id_client(id_client)
+
 {} 
 
 void GameRemote::run(){}
@@ -33,7 +22,7 @@ void GameRemote::moveBlock(char direction){}
 
 void GameRemote::setRemoteBlock(BlockPacket packet){
     Block *block_ptr = getCurrentBlockPtr();
-    if(block_ptr!=nullptr && packet.id_block == block_ptr->id){
+    if(block_ptr!=nullptr && packet.id_block == block_ptr->getID()){
         block_ptr->setPosition(packet.x, packet.y);
         block_ptr->setRotation(packet.rotation);
     }
@@ -59,4 +48,8 @@ void GameRemote::setRemoteStat(StatPacket packet){
 
 void GameRemote::setUsername(std::string name){
     this->username = name;
+}
+
+uint8_t GameRemote::getId(){
+    return id_client;
 }

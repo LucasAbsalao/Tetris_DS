@@ -10,7 +10,7 @@ class GameRemote : public Game {
         std::string username;
 
     public:
-        GameRemote(int normalSpeed, int fast_speed, Texture2D background, int position_x, int position_y, uint8_t id_client);
+        GameRemote(int normalSpeed, int fastSpeed, Texture2D background, int position_x, int position_y, uint8_t id_client);
         virtual void run() override;
         virtual void moveBlock(char direction) override;
         virtual void rotateBlock() override;
@@ -21,4 +21,6 @@ class GameRemote : public Game {
         void setRemoteBlock(BlockPacket packet);
         void setRemoteGrid(GridPacket packet);
         void setRemoteStat(StatPacket packet);
-}
+
+        uint8_t getId();
+};

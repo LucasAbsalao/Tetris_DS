@@ -16,9 +16,25 @@ Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(make_uniq
                                                                    gameOver(false)
 {}
 
+Game::Game(int normalSpeed, int fastSpeed, Texture2D background, float position_x, float position_y):   grid(make_unique<Grid>(10,24,25,(Vector2){position_x,position_y},0)), 
+                                                                                                        colors(Colors::getColors()), 
+                                                                                                        block(generateBlock()), 
+                                                                                                        nextBlock(generateBlock()),
+                                                                                                        backgroundImg(background),
+                                                                                                        stat(Stat()),
+                                                                                                        position_x(position_x),
+                                                                                                        position_y(position_y),
+                                                                                                        normalSpeed(normalSpeed),
+                                                                                                        fastSpeed(fastSpeed),
+                                                                                                        actualSpeed(normalSpeed),
+                                                                                                        goDown(false),
+                                                                                                        delayToGoDown(0),
+                                                                                                        gameOver(false)
+{}
+
 void Game::draw(){
-    DrawTextureEx(backgroundImg, (Vector2){0.0,0.0}, 0.0f,1.0,WHITE);
-    DrawTextureEx(backgroundImg, (Vector2){(float)backgroundImg.width,0.0}, 0.0f,1.0,WHITE);
+    // DrawTextureEx(backgroundImg, (Vector2){0.0,0.0}, 0.0f,1.0,WHITE);
+    // DrawTextureEx(backgroundImg, (Vector2){(float)backgroundImg.width,0.0}, 0.0f,1.0,WHITE);
 
     grid->draw();
 
@@ -64,14 +80,16 @@ int Game::generateRandomNumber(int limit){
 }
 
 void Game::run(){
-    getMovement();
+    if(!gameOver){
+        getMovement();
 
-    update();
+        update();
 
-    int count_lines = 0;
-    int completed_line = grid->getCompletedLine(count_lines);
-    if(completed_line!=-1)
-        updateGridStat(count_lines, completed_line);
+        int count_lines = 0;
+        int completed_line = grid->getCompletedLine(count_lines);
+        if(completed_line!=-1)
+            updateGridStat(count_lines, completed_line);
+    }
 }
 
 void Game::updateGridStat(int count_lines, int completed_line){
@@ -210,16 +228,16 @@ Block* Game::getCurrentBlockPtr() {
 }
 
 Block Game::getNextBlock(){
-    return *nextBlock
+    return *nextBlock;
 }
 
 Block& Game::getNextBlockRef(){
-    return *nextBlock
+    return *nextBlock;
 }
 
-void spawnBlock(int x, int y, int id, int rotationState){
+void Game::spawnBlock(int x, int y, int id, int rotationState){
     int position[2] = {x, y};
-    int idx = id;
-    block = std::make_unique<Block>(position, id, grid->getSize(), idx, colors[idx]);
-    block_ptr->setRotation(rotationState);
+    int idx = 9; //TODO: Color
+    this->block = std::make_unique<Block>(position, id, grid->getSize(), idx, colors[idx]);
+    (this->block)->setRotation(rotationState);
 }

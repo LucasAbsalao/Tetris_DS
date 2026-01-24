@@ -2,17 +2,19 @@
 #include<iostream>
 #include<string>
 #include "game.hpp"
-#include "gameMultiplayer.hpp"
+#include "matchManager.hpp"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 #define NORMAL_SPEED 15
 #define FAST_SPEED 2
+#define MAX_INPUT_CHARS 12
 
 using namespace std;
 
 enum GameState {
     START_SCREEN,
+    INPUT_USERNAME,
     PLAYING,
     PLAYING_MULTIPLAYER,
     INSTRUCTIONS,
@@ -61,6 +63,13 @@ int main(){
     Game game(NORMAL_SPEED, FAST_SPEED, background);
     MatchManager match(NORMAL_SPEED, FAST_SPEED, background, serverAddress, port); //TODO: Create multiGame just if the button is pressed;
 
+    // --- VARIÁVEIS PARA O INPUT DE TEXTO ---
+    char name[MAX_INPUT_CHARS + 1] = "\0"; // Buffer para o texto (+1 para o terminador nulo)
+    int letterCount = 0;
+    Rectangle textBox = { SCREEN_WIDTH / 2.0f - 150, SCREEN_HEIGHT / 2.0f, 300, 50 };
+    int framesCounter = 0; // Para piscar o cursor
+    // ---------------------------------------
+
     Rectangle startButton = {SCREEN_WIDTH / 2 - 100, 220, 200, 50};
     Rectangle multiButton = {SCREEN_WIDTH / 2 - 100, 290, 200, 50};
     Rectangle instructionsButton = {SCREEN_WIDTH / 2 - 100, 360, 200, 50};
@@ -68,24 +77,65 @@ int main(){
 
     while (!WindowShouldClose() && gameState != EXITING) {
         
-        if (gameState == START_SCREEN) {
-            Vector2 mousePoint = GetMousePosition();
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                if (CheckCollisionPointRec(mousePoint, startButton)) {
-                    gameState = PLAYING;
-                } else if (CheckCollisionPointRec(mousePoint, multiButton)) {
-                    multiGame.initNetwork();
-                    multiGame.connectToServer();
-                    gameState = PLAYING_MULTIPLAYER;
-                } else if (CheckCollisionPointRec(mousePoint, instructionsButton)) {
-                    gameState = INSTRUCTIONS; 
-                } else if (CheckCollisionPointRec(mousePoint, exitButton)) {
-                    gameState = EXITING; 
+        switch(gameState) {
+            case START_SCREEN: {
+                Vector2 mousePoint = GetMousePosition();
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    if (CheckCollisionPointRec(mousePoint, startButton)) {
+                        gameState = PLAYING;
+                    } else if (CheckCollisionPointRec(mousePoint, multiButton)) {
+                        gameState = INPUT_USERNAME; // Vai para a tela de nome
+                    } else if (CheckCollisionPointRec(mousePoint, instructionsButton)) {
+                        gameState = INSTRUCTIONS; 
+                    } else if (CheckCollisionPointRec(mousePoint, exitButton)) {
+                        gameState = EXITING; 
+                    }
                 }
+                break;
             }
-        } 
-        if (gameState == PLAYING && game.getGameOver()) gameState = EXITING;
-        if (gameState == PLAYING_MULTIPLAYER && multiGame.getGameOver()) gameState = EXITING;
+
+            case INPUT_USERNAME: {
+                int key = GetCharPressed();
+
+                while (key > 0) {
+                    if ((key >= 32) && (key <= 125) && (letterCount < MAX_INPUT_CHARS)) {
+                        name[letterCount] = (char)key;
+                        name[letterCount+1] = '\0';
+                        letterCount++;
+                    }
+                    key = GetCharPressed();  // Pega o próximo da fila
+                }
+
+                if (IsKeyPressed(KEY_BACKSPACE)) {
+                    letterCount--;
+                    if (letterCount < 0) letterCount = 0;
+                    name[letterCount] = '\0';
+                }
+
+                if (IsKeyPressed(KEY_ENTER) && letterCount > 0) {
+
+                    match.init();
+                    match.setLocalPlayerName(std::string(name)); 
+                    
+                    gameState = PLAYING_MULTIPLAYER;
+                }
+                framesCounter++;
+                break;
+            }
+
+            case PLAYING:
+                if (game.getGameOver()) gameState = EXITING;
+                break;
+                
+            case PLAYING_MULTIPLAYER:
+                // if (match.getGameOver()) gameState = EXITING;
+                break;
+            
+            case INSTRUCTIONS:
+                 if (IsKeyPressed(KEY_ENTER)) gameState = START_SCREEN;
+                 break;
+        }
+        //if (gameState == PLAYING_MULTIPLAYER && match.getGameOver()) gameState = EXITING;
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -97,18 +147,40 @@ int main(){
                 break;
 
             case PLAYING_MULTIPLAYER:
-                multiGame.run();
-                multiGame.draw(); 
+                match.run();
+                match.draw(); 
                 break;
 
             case INSTRUCTIONS:
+                 DrawStartScreen(startButton, multiButton, instructionsButton, exitButton);
+                 DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade(RAYWHITE, 0.9f));
+                 DrawText("INSTRUÇÕES...", 50, 100, 30, DARKGRAY);
+                 DrawText("Pressione ENTER para voltar", 50, 200, 20, DARKGRAY);
+                 break;
+
             case START_SCREEN:
                 DrawStartScreen(startButton, multiButton, instructionsButton, exitButton);
-                if (gameState == INSTRUCTIONS) {
-                    DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade(RAYWHITE, 0.9f));
-                    DrawText("INSTRUÇÕES...", 50, 100, 30, DARKGRAY);
-                    if (IsKeyPressed(KEY_ENTER)) gameState = START_SCREEN;
+                break;
+
+            // --- DESENHO DA TELA DE INPUT ---
+            case INPUT_USERNAME:
+                DrawText("DIGITE SEU NOME DE USUÁRIO", SCREEN_WIDTH/2 - MeasureText("DIGITE SEU NOME DE USUÁRIO", 20)/2, SCREEN_HEIGHT/2 - 50, 20, GRAY);
+
+                DrawRectangleRec(textBox, LIGHTGRAY);
+                DrawRectangleLines((int)textBox.x, (int)textBox.y, (int)textBox.width, (int)textBox.height, DARKGRAY);
+
+                DrawText(name, (int)textBox.x + 5, (int)textBox.y + 8, 40, MAROON);
+                
+                DrawText(TextFormat("Chars: %i/%i", letterCount, MAX_INPUT_CHARS), SCREEN_WIDTH/2 - 50, SCREEN_HEIGHT/2 + 60, 20, DARKGRAY);
+
+                // Cursor piscando
+                if (letterCount < MAX_INPUT_CHARS) {
+                    if (((framesCounter / 20) % 2) == 0) {
+                        DrawText("_", (int)textBox.x + 8 + MeasureText(name, 40), (int)textBox.y + 12, 40, MAROON);
+                    }
                 }
+                
+                DrawText("Pressione ENTER para conectar", SCREEN_WIDTH/2 - MeasureText("Pressione ENTER para conectar", 20)/2, SCREEN_HEIGHT - 100, 20, GRAY);
                 break;
         }
 
