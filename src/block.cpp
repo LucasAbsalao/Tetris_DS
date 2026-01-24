@@ -10,11 +10,22 @@ Block::Block(int position[2], int size, int idx_color, Color color): idx_color(i
     blocks[3] = { {0,1}, {1,0}, {1,1}, {2,0} };
 }
 
+Block::Block(int position[2], int id, int size, int idx_color, Color color): idx_color(idx_color), position({position[0], position[1]}), color(color), id(id), size(size), rotationState(0){
+    blocks[0] = { {0,0}, {0,1}, {1,1}, {1,2} };
+    blocks[1] = { {0,2}, {1,1}, {1,2}, {2,1} };
+    blocks[2] = { {1,0}, {1,1}, {2,1}, {2,2} };
+    blocks[3] = { {0,1}, {1,0}, {1,1}, {2,0} };
+}
+
 void Block::rotate(){
     rotationState++;
     if(rotationState==(int)blocks.size()){
         rotationState = 0;
     }
+}
+
+void Block::setRotation(int rotationState){
+    this->rotationState = rotationState;
 }
 
 void Block::moveDirection(char direction){
@@ -37,6 +48,22 @@ void Block::moveDirection(char direction){
 void Block::move(int x, int y){
     position[0] += x;
     position[1] += y;
+}
+
+void Block::setPosition(int x, int y){
+    position[0] = x;
+    position[1] = y;
+}
+
+BlockPacket Block::toPacket(int id){
+    BlockPacket packet;
+    packet.type = MessageType::BLOCK;
+    packet.id = id;
+    packet.id_block = static_cast<uint8_t>(id);
+    packet.rotation = static_cast<uint8_t>(rotationState);
+    packet.x = static_cast<uint8_t>(position[0]);
+    packet.y = static_cast<uint8_t>(position[1]);
+    return packet;
 }
 
 void Block::draw(Vector2 offset){

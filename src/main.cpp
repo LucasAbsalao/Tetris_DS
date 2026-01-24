@@ -2,9 +2,10 @@
 #include<iostream>
 #include<string>
 #include "game.hpp"
+#include "gameMultiplayer.hpp"
 
-#define SCREEN_WIDTH 650
-#define SCREEN_HEIGHT 720
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
 #define NORMAL_SPEED 15
 #define FAST_SPEED 2
 
@@ -13,13 +14,14 @@ using namespace std;
 enum GameState {
     START_SCREEN,
     PLAYING,
+    PLAYING_MULTIPLAYER,
     INSTRUCTIONS,
     EXITING
 };
 
 GameState gameState = START_SCREEN;
 
-void DrawStartScreen(Rectangle startButton, Rectangle instructionsButton, Rectangle exitButton) {
+void DrawStartScreen(Rectangle startButton, Rectangle multiButton, Rectangle instructionsButton, Rectangle exitButton) {
     // Desenho de Fundo e Título
     ClearBackground(RAYWHITE);
     DrawText("RAYLIB TETRIS", SCREEN_WIDTH / 2 - MeasureText("RAYLIB TETRIS", 50) / 2, 100, 50, DARKBLUE);
@@ -31,6 +33,10 @@ void DrawStartScreen(Rectangle startButton, Rectangle instructionsButton, Rectan
     DrawRectangleRec(instructionsButton, LIGHTGRAY);
     DrawRectangleLinesEx(instructionsButton, 2, DARKGRAY);
     DrawText("INSTRUÇÕES", instructionsButton.x + instructionsButton.width / 2 - MeasureText("INSTRUÇÕES", 20) / 2, instructionsButton.y + instructionsButton.height / 2 - 10, 20, BLACK);
+
+    DrawRectangleRec(multiButton, LIGHTGRAY);
+    DrawRectangleLinesEx(multiButton, 2, DARKGRAY);
+    DrawText("MULTIPLAYER", multiButton.x + multiButton.width/2 - MeasureText("MULTIPLAYER", 20)/2, multiButton.y + 15, 20, BLACK);
 
     DrawRectangleRec(exitButton, LIGHTGRAY);
     DrawRectangleLinesEx(exitButton, 2, DARKGRAY);
@@ -48,22 +54,29 @@ int main(){
     InitWindow(SCREEN_WIDTH,SCREEN_HEIGHT,"raylib Tetris");
     SetTargetFPS(60);
 
+    std::string serverAddress = "127.0.0.1";
+    int port = 7788;
     Texture2D background = LoadTexture("assets/background.jpeg");
-    Game game(NORMAL_SPEED, FAST_SPEED, background);
 
-    Rectangle startButton = {SCREEN_WIDTH / 2 - 100, 300, 200, 50};
-    Rectangle instructionsButton = {SCREEN_WIDTH / 2 - 100, 370, 200, 50};
-    Rectangle exitButton = {SCREEN_WIDTH / 2 - 100, 440, 200, 50};
+    Game game(NORMAL_SPEED, FAST_SPEED, background);
+    MatchManager match(NORMAL_SPEED, FAST_SPEED, background, serverAddress, port); //TODO: Create multiGame just if the button is pressed;
+
+    Rectangle startButton = {SCREEN_WIDTH / 2 - 100, 220, 200, 50};
+    Rectangle multiButton = {SCREEN_WIDTH / 2 - 100, 290, 200, 50};
+    Rectangle instructionsButton = {SCREEN_WIDTH / 2 - 100, 360, 200, 50};
+    Rectangle exitButton = {SCREEN_WIDTH / 2 - 100, 430, 200, 50};
 
     while (!WindowShouldClose() && gameState != EXITING) {
         
         if (gameState == START_SCREEN) {
             Vector2 mousePoint = GetMousePosition();
-            bool mouseClicked = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
-            
-            if (mouseClicked) {
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 if (CheckCollisionPointRec(mousePoint, startButton)) {
                     gameState = PLAYING;
+                } else if (CheckCollisionPointRec(mousePoint, multiButton)) {
+                    multiGame.initNetwork();
+                    multiGame.connectToServer();
+                    gameState = PLAYING_MULTIPLAYER;
                 } else if (CheckCollisionPointRec(mousePoint, instructionsButton)) {
                     gameState = INSTRUCTIONS; 
                 } else if (CheckCollisionPointRec(mousePoint, exitButton)) {
@@ -71,25 +84,32 @@ int main(){
                 }
             }
         } 
-        
-        else if (gameState == INSTRUCTIONS) {
-            if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE)) {
-                gameState = START_SCREEN;
-            }
-        }
-
-        if (WindowShouldClose() || game.getGameOver() == true) {
-            gameState = EXITING;
-        }
-
+        if (gameState == PLAYING && game.getGameOver()) gameState = EXITING;
+        if (gameState == PLAYING_MULTIPLAYER && multiGame.getGameOver()) gameState = EXITING;
 
         BeginDrawing();
+        ClearBackground(RAYWHITE);
 
-        if (gameState == PLAYING) {
-            game.run();
-            game.draw(); 
-        } else {
-            DrawStartScreen(startButton, instructionsButton, exitButton);
+        switch (gameState) {
+            case PLAYING:
+                game.run();
+                game.draw();
+                break;
+
+            case PLAYING_MULTIPLAYER:
+                multiGame.run();
+                multiGame.draw(); 
+                break;
+
+            case INSTRUCTIONS:
+            case START_SCREEN:
+                DrawStartScreen(startButton, multiButton, instructionsButton, exitButton);
+                if (gameState == INSTRUCTIONS) {
+                    DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade(RAYWHITE, 0.9f));
+                    DrawText("INSTRUÇÕES...", 50, 100, 30, DARKGRAY);
+                    if (IsKeyPressed(KEY_ENTER)) gameState = START_SCREEN;
+                }
+                break;
         }
 
         EndDrawing();

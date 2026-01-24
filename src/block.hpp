@@ -7,6 +7,7 @@
 #include<ostream>
 
 #include "position.hpp"
+#include"network/networkStructures.hpp"
 
 using namespace std; 
 
@@ -22,17 +23,25 @@ class Block{
 
     public:
         Block(int position[2], int size, int idx_color, Color color);
+        Block(int position[2], int id, int size, int idx_color, Color color);
         void moveDirection(char direction);
         void move(int x, int y); //Colocar como private
         void draw(Vector2 offset);
         void drawProjection(Vector2 offset, int line);
         void rotate();
-        template<class charT, class charTraits>
-        friend basic_ostream<charT,charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block);
+        void setRotation(int rotationState);
+        void setPosition(int x, int y);
+
         array<int,2> getPosition() const;
         vector<Position> getBlocks() const;
         int getColor() const;
         int *GetBoundary() const;
+
+
+        BlockPacket toPacket(int id);
+        
+        template<class charT, class charTraits>
+        friend basic_ostream<charT,charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block);
 };
 
 template<class charT, class charTraits>

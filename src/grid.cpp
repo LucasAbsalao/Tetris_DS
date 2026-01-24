@@ -104,6 +104,25 @@ string Grid::strGrid(){
     return str_grid;
 }
 
+GridPacket Grid::toPacket(int id){
+    GridPacket packet;
+    packet.type = MessageType::GRID;
+    packet.id = id;
+    packet.lines = static_cast<uint8_t>(grid_height);
+    packet.columns = static_cast<uint8_t>(grid_width);
+
+    std::memset(packet.grid, 0, sizeof(packet.grid));
+
+    for(int i=0;i<grid_height;i++){
+        for(int j=0;j<grid_width;j++){
+            packet.grid[i][j] = static_cast<uint8_t>(grid[i][j]);
+        }
+    }
+
+    return packet;
+}
+
+
 int Grid::getBackgroundColor(){
     return backgroundColor;
 }

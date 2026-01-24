@@ -1,3 +1,5 @@
+#pragma once
+
 #include<vector>
 #include<raylib.h>
 #include<iostream>
@@ -8,6 +10,7 @@
 #include "block.hpp"
 #include "grid.hpp"
 #include "stats.hpp"
+#include "colors.hpp"
 
 
 using namespace std;
@@ -15,13 +18,15 @@ using namespace std;
 class Game
 {
     private:
-        vector<Color> colors;
         unique_ptr<Grid> grid;
+        vector<Color> colors;
         unique_ptr<Block> block;
         unique_ptr<Block> nextBlock;
         Texture2D backgroundImg;
         Stat stat;
 
+        int position_x;
+        int position_y;
         int delayToGoDown;
         int normalSpeed;
         int fastSpeed;
@@ -29,23 +34,37 @@ class Game
         bool goDown;
         bool gameOver;
 
+        
+
     public:
         Game(int normalSpeed, int fast_speed, Texture2D background);
         unique_ptr<Block> generateBlock();
         int generateRandomNumber(int limit);
         void draw();
         void drawUI();
-        void run();
-        void update();
-        void rotateBlock();
-        Block getBlock();
+        virtual void run();
         void getMovement();
+        void update();
+        virtual void moveBlock(char direction);
+        virtual void rotateBlock();
+        virtual void insertBlockInGrid();
+        virtual void updateGridStat(int count_lines, int completed_line);
         bool CheckCollisionWall(char direction);
         bool checkCollisionFloor();
         bool checkCollisionFloor(int positionX);
         int getProjectionLine(); 
         void checkGameOver();
-
-        
         bool getGameOver();
+        Block getBlock();
+        Block getNextBlock();
+        Stat getStat();
+        Grid getGrid();
+
+    protected:
+        Block& getBlockRef();
+        Block& getNextBlockRef();
+        Block* getCurrentBlockPtr();
+        Grid& getGridRef();
+        Stat& getStatRef();
+        void spawnBlock(int x, int y, int id, int rotationState);
 };

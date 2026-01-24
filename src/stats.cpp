@@ -38,6 +38,15 @@ void Stat::updateHowManyBlocks(int type_of_block){
     how_many_blocks[type_of_block] += 1;
 }
 
+StatPacket Stat::toPacket(int id){
+    StatPacket packet;
+    packet.type = MessageType::STATS;
+    packet.id = id;
+    packet.level = static_cast<uint8_t>(level);
+    packet.score = static_cast<uint32_t>(score);
+    return packet;
+}
+
 int Stat::getScore(){
     return score;
 }
@@ -54,4 +63,12 @@ std::string Stat::strScore(){
 
 std::string Stat::strLevel(){
     return std::to_string(level);
+}
+
+void Stat::setScore(int score){
+    this->score = score;
+}
+
+void Stat::setLevel(int level){
+    this->level = level;
 }

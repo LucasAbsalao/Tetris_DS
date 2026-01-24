@@ -1,5 +1,4 @@
 #include "game.hpp"
-#include "colors.hpp"
 
 Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(make_unique<Grid>(10,24,25,(Vector2){125,65},0)), 
                                                                    colors(Colors::getColors()), 
@@ -7,6 +6,8 @@ Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(make_uniq
                                                                    nextBlock(generateBlock()),
                                                                    backgroundImg(background),
                                                                    stat(Stat()),
+                                                                   position_x(125),
+                                                                   position_y(65),
                                                                    normalSpeed(normalSpeed),
                                                                    fastSpeed(fastSpeed),
                                                                    actualSpeed(normalSpeed),
@@ -32,17 +33,17 @@ void Game::draw(){
 
 void Game::drawUI(){ //TODO: Automatizar os valores de score e level para eles ficarem centralizados
     char str_score[50];
-    DrawText("TETRIS", 145, 10, 50, {255,255,255,255});
+    DrawText("TETRIS", position_x+20, position_y-55, 50, {255,255,255,255});
 
-    DrawText("SCORE", 455, 50, 30, {255,255,255,255});
-    DrawRectangle(400,75,200,90,colors[0]);
-    DrawText(stat.strScore().c_str(), 490, 90, 60, {255,255,255,255});
+    DrawText("SCORE", position_x+330, position_y-15, 30, {255,255,255,255});
+    DrawRectangle(position_x+275,position_y+10,200,90,colors[0]);
+    DrawText(stat.strScore().c_str(), position_x+365, position_y+25, 60, {255,255,255,255});
 
-    DrawText("NEXT BLOCK", 400, 180, 30, {255,255,255,255});
-    DrawRectangle(400,205,200,90,colors[0]);
+    DrawText("NEXT BLOCK", position_x+275, position_y+115, 30, {255,255,255,255});
+    DrawRectangle(position_x+275, position_y+140,200,90,colors[0]);
 
-    DrawText("LEVEL", 455, 550, 30, {255,255,255,255});
-    DrawRectangle(400,575,200,90,colors[0]);
+    DrawText("LEVEL", position_x+330, position_y+485, 30, {255,255,255,255});
+    DrawRectangle(position_x+275,position_y+510,200,90,colors[0]);
     DrawText(stat.strLevel().c_str(), 490, 590, 60, {255,255,255,255});
 
     Rectangle rec({grid->getPosition().x-4, grid->getPosition().y-4, (float) grid->getGridWidth()*grid->getSize() + 8, (float)grid->getGridHeight()*grid->getSize() + 8});
@@ -63,16 +64,19 @@ int Game::generateRandomNumber(int limit){
 }
 
 void Game::run(){
-
     getMovement();
+
     update();
 
     int count_lines = 0;
     int completed_line = grid->getCompletedLine(count_lines);
-    if(completed_line!=-1) {
-        stat.update(count_lines);
-        grid->reallocateLines(completed_line);
-    }
+    if(completed_line!=-1)
+        updateGridStat(count_lines, completed_line);
+}
+
+void Game::updateGridStat(int count_lines, int completed_line){
+    stat.update(count_lines);
+    grid->reallocateLines(completed_line);
 }
 
 void Game::update(){
@@ -81,16 +85,20 @@ void Game::update(){
     }
     else{
         if(checkCollisionFloor()){
-            grid->insertBlock(getBlock());
-            swap(block, nextBlock);
-            nextBlock = generateBlock();
+            insertBlockInGrid();
         }
         else{
-            block->moveDirection('D');
+            moveBlock('D');
         }
         delayToGoDown=0;
     }
     checkGameOver();
+}
+
+void Game::insertBlockInGrid(){
+    grid->insertBlock(getBlock());
+    swap(block, nextBlock);
+    nextBlock = generateBlock();
 }
 
 void Game::checkGameOver(){
@@ -110,10 +118,10 @@ void Game::getMovement(){
         goDown = false;
     }
     if(IsKeyPressed(KEY_RIGHT) && !CheckCollisionWall('R')){
-        block->moveDirection('R');
+        moveBlock('R');
     }
     else if(IsKeyPressed(KEY_LEFT) && !CheckCollisionWall('L')){
-        block->moveDirection('L');
+        moveBlock('L');
     }
     if(IsKeyPressed(KEY_UP)){
         rotateBlock();
@@ -122,6 +130,10 @@ void Game::getMovement(){
 
 void Game::rotateBlock(){
     block->rotate();
+}
+
+void Game::moveBlock(char direction){
+    block->moveDirection(direction);
 }
 
 bool Game::CheckCollisionWall(char direction){
@@ -165,10 +177,49 @@ int Game::getProjectionLine(){
     return -1;
 }
 
+bool Game::getGameOver(){
+    return gameOver;
+}
+
+Grid Game::getGrid(){
+    return *grid;
+}
+
+Grid& Game::getGridRef(){
+    return *grid;
+}
+
+Stat Game::getStat(){
+    return stat;
+}
+
+Stat& Game::getStatRef(){
+    return stat;
+}
+
 Block Game::getBlock(){
     return *block;
 }
 
-bool Game::getGameOver(){
-    return gameOver;
+Block& Game::getBlockRef(){
+    return *block;
+}
+
+Block* Game::getCurrentBlockPtr() {
+    return block.get(); // return the pointer
+}
+
+Block Game::getNextBlock(){
+    return *nextBlock
+}
+
+Block& Game::getNextBlockRef(){
+    return *nextBlock
+}
+
+void spawnBlock(int x, int y, int id, int rotationState){
+    int position[2] = {x, y};
+    int idx = id;
+    block = std::make_unique<Block>(position, id, grid->getSize(), idx, colors[idx]);
+    block_ptr->setRotation(rotationState);
 }

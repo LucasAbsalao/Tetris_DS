@@ -37,7 +37,7 @@ else
 		# Set Linux macros
 		platform := Linux
 		CXX ?= g++
-		linkFlags += -l GL -l m -l pthread -l dl -l rt -l X11
+		linkFlags += -lenet -l GL -l m -l pthread -l dl -l rt -l X11
 	endif
 	ifeq ($(UNAMEOS), Darwin)
 		# Set macOS macros

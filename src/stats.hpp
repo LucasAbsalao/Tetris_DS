@@ -5,6 +5,8 @@
 #include<vector>
 #include<iostream>
 
+#include"network/networkStructures.hpp"
+
 class Stat{
     private:
         int score;
@@ -23,8 +25,11 @@ class Stat{
 
         int getScore();
         int getLevel();
+        void setScore(int score);
+        void setLevel(int level);
         std::vector<int> getHowManyBlocks();
         std::string strScore();
         std::string strLevel();
 
+        StatPacket toPacket(int id);
 };

@@ -1,10 +1,14 @@
+#pragma once
+
 #include<vector>
 #include<raylib.h>
 #include<iostream>
 #include<memory>
 #include<random>
 #include<ctime>
+#include<cstring>
 
+#include"network/networkStructures.hpp"
 #include"colors.hpp"
 #include"block.hpp"
 
@@ -34,6 +38,8 @@ class Grid
         void resetLine(int idx_line);
         bool isThereABlockInTheLine(int line);
         //TODO fazer os gets
+
+        GridPacket toPacket(int id);
 
         int getBackgroundColor();
         Vector2 getPosition();
