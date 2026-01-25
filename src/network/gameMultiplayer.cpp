@@ -22,7 +22,7 @@ GameMultiplayer::GameMultiplayer(int normalSpeed,
                                                  readyToStart(false)
 {} 
 
-void GameMultiplayer::initNetwork(){ // TODO: Exception
+void GameMultiplayer::initNetwork(){
     std::cout << "Multiplayer: Initializing Enet\n";
     net->initEnet();
     std::cout << "Multiplayer: Initializing Client\n";
