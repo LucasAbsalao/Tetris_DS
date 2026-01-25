@@ -9,6 +9,7 @@ Game::Game(int normalSpeed, int fastSpeed)
       actualSpeed(normalSpeed),
       goDown(false),
       delayToGoDown(0),
+      gameOver(false),
       rng(std::random_device{}()),
       lastId(-1)
 {
@@ -47,43 +48,63 @@ std::unique_ptr<Block> Game::generateBlock() {
 
 // One game step
 void Game::run() {
+    if (gameOver) return;
+
     getMovement();
     update();
-
-    int count = 0;
-    int line = grid->getCompletedLine(count);
-    if (line != -1) {
-        stat.update(count);
-        grid->reallocateLines(line);
-    }
 }
 
 // Gravity / locking
 void Game::update() {
+    if (gameOver) return;
+
     if (delayToGoDown < actualSpeed) {
         delayToGoDown++;
+        return;
     }
-    else{
-        if (checkCollisionFloor()) {
-            grid->insertBlock(*block);
-            std::swap(block, nextBlock);
-            nextBlock = generateBlock();
-        } else {
-            block->moveDirection('D');
+
+    // Time to apply gravity
+    if (checkCollisionFloor()) {
+        // Lock current piece
+        grid->insertBlock(*block);
+
+        // Clear lines right after locking
+        int count_lines = 0;
+        int completed_line = grid->getCompletedLine(count_lines);
+        if (completed_line != -1) {
+            stat.update(count_lines);
+            grid->reallocateLines(completed_line);
         }
-        delayToGoDown = 0;
+
+        // Game over rule: top row occupied
+        checkGameOver();
+        if (gameOver) {
+            delayToGoDown = 0;
+            return;
+        }
+
+        // Spawn next
+        std::swap(block, nextBlock);
+        nextBlock = generateBlock();
+    } else {
+        // Normal fall
+        block->moveDirection('D');
     }
-    checkGameOver();
+
+    delayToGoDown = 0;
 }
 
-void Game::checkGameOver(){
-    if(grid->isThereABlockInTheLine(0)){
+void Game::checkGameOver() {
+    if (grid->isRowOccupied(0)) {
         gameOver = true;
     }
 }
 
+
 // Input handling
 void Game::getMovement() {
+    if (gameOver) return;
+
     if (IsKeyDown(KEY_DOWN) && !goDown) {
         actualSpeed = fastSpeed;
         goDown = true;
@@ -104,6 +125,8 @@ void Game::getMovement() {
 
 // Rotation with wall-kick + revert if invalid
 void Game::rotateBlock() {
+    if (gameOver) return;
+
     int oldRot = block->getRotationState();
     int oldRow = block->getRow();
     int oldCol = block->getCol();
@@ -114,7 +137,7 @@ void Game::rotateBlock() {
         {0, 0}, {0, -1}, {0, 1}, {0, -2}, {0, 2}, {-1, 0}
     };
 
-    for (auto& k : kicks) {
+    for (const auto& k : kicks) {
         int r = oldRow + k[0];
         int c = oldCol + k[1];
 
@@ -195,13 +218,14 @@ int Game::getProjectionLine() {
     return -1;
 }
 
-Block Game::getBlock(){
+Block Game::getBlock() {
     return *block;
 }
 
-bool Game::getGameOver(){
+bool Game::getGameOver() {
     return gameOver;
 }
+
 // Getters
 const Grid& Game::getGrid() const { return *grid; }
 const Block& Game::getCurrentBlock() const { return *block; }

@@ -6,8 +6,98 @@
 #include <algorithm>
 #include <cmath>
 
+// Keep speeds for restart (no header changes)
+static int sNormalSpeed = 0;
+static int sFastSpeed   = 0;
+
+// Center a rectangle on (cx, cy)
 static Rectangle CenterRect(float cx, float cy, float w, float h) {
     return Rectangle{cx - w * 0.5f, cy - h * 0.5f, w, h};
+}
+
+// Bounds of local block cells (x=row, y=col)
+static void BoundsOfCells(const std::vector<Position>& cells,
+                          int& minX, int& maxX,
+                          int& minY, int& maxY)
+{
+    minX =  9999; maxX = -9999;
+    minY =  9999; maxY = -9999;
+
+    for (const auto& p : cells) {
+        minX = std::min(minX, p.x);
+        maxX = std::max(maxX, p.x);
+        minY = std::min(minY, p.y);
+        maxY = std::max(maxY, p.y);
+    }
+}
+
+// Draws a block centered inside a panel (NEXT preview)
+static void DrawBlockPreview(const Block& b, Rectangle panel, Color fill, int cellSize) {
+    auto cells = b.getBlocks();
+
+    int minX, maxX, minY, maxY;
+    BoundsOfCells(cells, minX, maxX, minY, maxY);
+
+    float wCells = (float)(maxY - minY + 1);
+    float hCells = (float)(maxX - minX + 1);
+
+    float drawW = wCells * (float)cellSize;
+    float drawH = hCells * (float)cellSize;
+
+    float startX = panel.x + panel.width * 0.5f - drawW * 0.5f;
+    float startY = panel.y + panel.height * 0.5f - drawH * 0.5f;
+
+    for (const auto& c : cells) {
+        float px = startX + (float)(c.y - minY) * (float)cellSize;
+        float py = startY + (float)(c.x - minX) * (float)cellSize;
+
+        Rectangle r{px, py, (float)cellSize, (float)cellSize};
+
+        DrawRectangleRec(r, fill);
+        DrawRectangleLinesEx(r, 2.0f, Fade(BLACK, 0.75f));
+        DrawRectangleLinesEx(Rectangle{px + 1, py + 1, (float)cellSize - 2.0f, (float)cellSize - 2.0f},
+                             1.0f, Fade(RAYWHITE, 0.20f));
+    }
+}
+
+// Game over overlay
+static void DrawGameOverOverlay(int screenW, int screenH, Font font, const Stat& st) {
+    DrawRectangle(0, 0, screenW, screenH, Fade(BLACK, 0.65f));
+
+    Rectangle card = CenterRect(screenW * 0.5f, screenH * 0.5f, 560, 300);
+    DrawRectangleRounded(card, 0.10f, 14, Fade(RAYWHITE, 0.95f));
+    DrawRectangleRoundedLines(card, 0.10f, 14, Fade(BLACK, 0.25f));
+
+    const char* title = "GAME OVER";
+    Vector2 tSize = MeasureTextEx(font, title, 52.0f, 2.0f);
+    DrawTextEx(font, title,
+               {card.x + card.width * 0.5f - tSize.x * 0.5f, card.y + 40},
+               52.0f, 2.0f, MAROON);
+
+    // Show final score
+    std::string scoreLine = "Score: " + st.strScore();
+    Vector2 sSize = MeasureTextEx(font, scoreLine.c_str(), 24.0f, 1.0f);
+    DrawTextEx(font, scoreLine.c_str(),
+               {card.x + card.width * 0.5f - sSize.x * 0.5f, card.y + 120},
+               24.0f, 1.0f, DARKGRAY);
+
+    const char* msg1 = "ENTER: restart";
+    Vector2 m1 = MeasureTextEx(font, msg1, 22.0f, 1.0f);
+    DrawTextEx(font, msg1,
+               {card.x + card.width * 0.5f - m1.x * 0.5f, card.y + 175},
+               22.0f, 1.0f, DARKBLUE);
+
+    const char* msg2 = "M: back to menu";
+    Vector2 m2 = MeasureTextEx(font, msg2, 18.0f, 1.0f);
+    DrawTextEx(font, msg2,
+               {card.x + card.width * 0.5f - m2.x * 0.5f, card.y + 215},
+               18.0f, 1.0f, Fade(DARKGRAY, 0.9f));
+
+    const char* msg3 = "ESC: quit";
+    Vector2 m3 = MeasureTextEx(font, msg3, 18.0f, 1.0f);
+    DrawTextEx(font, msg3,
+               {card.x + card.width * 0.5f - m3.x * 0.5f, card.y + 245},
+               18.0f, 1.0f, Fade(DARKGRAY, 0.9f));
 }
 
 RaylibApp::RaylibApp(int screenW, int screenH, int normalSpeed, int fastSpeed)
@@ -22,21 +112,21 @@ RaylibApp::RaylibApp(int screenW, int screenH, int normalSpeed, int fastSpeed)
       startTime(0.0f),
       game(normalSpeed, fastSpeed)
 {
+    // Store speeds for restart
+    sNormalSpeed = normalSpeed;
+    sFastSpeed   = fastSpeed;
+
     InitWindow(screenWidth, screenHeight, "Tetris");
+    SetExitKey(KEY_NULL); // Disable default ESC-to-close
     SetTargetFPS(60);
 
     background = LoadTexture("assets/background.jpeg");
-
-    // If you don't have a ttf yet, you can comment this and use default font.
-    // uiFont = LoadFontEx("assets/ui.ttf", 96, nullptr, 0);
     uiFont = GetFontDefault();
 
     buildDemoPieces();
 }
 
 RaylibApp::~RaylibApp() {
-    // Only unload if you used LoadFontEx. If using default font, unloading is not needed.
-    // UnloadFont(uiFont);
     UnloadTexture(background);
     CloseWindow();
 }
@@ -62,8 +152,9 @@ void RaylibApp::processInput() {
             else if (CheckCollisionPointRec(mouse, instructionsButton)) state = AppState::Instructions;
             else if (CheckCollisionPointRec(mouse, exitButton)) state = AppState::Exiting;
         }
-        if (IsKeyPressed(KEY_ENTER)) state = AppState::Playing;
-        if (IsKeyPressed(KEY_I)) state = AppState::Instructions;
+
+        if (IsKeyPressed(KEY_ENTER))  state = AppState::Playing;
+        if (IsKeyPressed(KEY_I))      state = AppState::Instructions;
         if (IsKeyPressed(KEY_ESCAPE)) state = AppState::Exiting;
     }
     else if (state == AppState::Instructions) {
@@ -71,17 +162,38 @@ void RaylibApp::processInput() {
             state = AppState::StartScreen;
         }
     }
-    // Gameplay input stays inside Game::getMovement() (your choice)
+    else if (state == AppState::Playing) {
+        // Restart when game is over
+        if (game.getGameOver() && IsKeyPressed(KEY_ENTER)) {
+            game = Game(sNormalSpeed, sFastSpeed);
+        }
+
+        // Back to menu (does not close the window)
+        if (IsKeyPressed(KEY_M) || IsKeyPressed(KEY_BACKSPACE)) {
+            state = AppState::StartScreen;
+            game = Game(sNormalSpeed, sFastSpeed);
+        }
+
+        // Quit game
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            state = AppState::Exiting;
+        }
+    }
+
+    // Gameplay input is handled inside Game
 }
 
 void RaylibApp::update() {
-    // ✅ Fix "travado": animation time advances on StartScreen too
+    // Keep the menu animation running
     if (state == AppState::StartScreen) {
         startTime += GetFrameTime();
     }
 
     if (state == AppState::Playing) {
-        game.run();
+        // Freeze logic when game over
+        if (!game.getGameOver()) {
+            game.run();
+        }
     }
 }
 
@@ -93,6 +205,7 @@ void RaylibApp::draw() {
 void RaylibApp::drawGameplay() {
     ClearBackground(RAYWHITE);
 
+    // Background tiling
     DrawTextureEx(background, (Vector2){0.0f, 0.0f}, 0.0f, 1.0f, WHITE);
     DrawTextureEx(background, (Vector2){(float)background.width, 0.0f}, 0.0f, 1.0f, WHITE);
 
@@ -104,14 +217,21 @@ void RaylibApp::drawGameplay() {
     const auto palette = Colors::getColors();
     Color fill = palette[b.getId()];
 
-    // Draw current piece
+    // Ghost first (behind the piece)
+    int projRow = game.getProjectionLine();
+    if (projRow != -1) {
+        drawBlockCells(b, g, projRow, b.getCol(), fill, true);
+    }
+
+    // Current block
     drawBlockCells(b, g, b.getRow(), b.getCol(), fill, false);
 
-    // Draw ghost
-    int projRow = game.getProjectionLine();
-    if (projRow != -1) drawBlockCells(b, g, projRow, b.getCol(), fill, true);
-
     drawHUD();
+
+    // Game over overlay
+    if (game.getGameOver()) {
+        DrawGameOverOverlay(screenWidth, screenHeight, uiFont, game.getStats());
+    }
 }
 
 void RaylibApp::drawHUD() {
@@ -119,51 +239,77 @@ void RaylibApp::drawHUD() {
 
     DrawText("TETRIS", 145, 10, 50, WHITE);
 
+    // Score box
     DrawText("SCORE", 455, 50, 30, WHITE);
     DrawRectangle(400, 75, 200, 90, Fade(BLACK, 0.35f));
     DrawText(st.strScore().c_str(), 490, 90, 60, WHITE);
 
+    // Next block box
+    DrawText("NEXT", 470, 190, 30, WHITE);
+    Rectangle nextPanel = Rectangle{400, 220, 200, 150};
+    DrawRectangleRec(nextPanel, Fade(BLACK, 0.35f));
+    DrawRectangleLinesEx(nextPanel, 2.0f, Fade(BLACK, 0.55f));
+
+    const Block& next = game.getNextBlock();
+    Color nextFill = Colors::getColors()[next.getId()];
+    DrawBlockPreview(next, nextPanel, nextFill, 20);
+
+    // Level box
     DrawText("LEVEL", 455, 550, 30, WHITE);
     DrawRectangle(400, 575, 200, 90, Fade(BLACK, 0.35f));
     DrawText(st.strLevel().c_str(), 490, 590, 60, WHITE);
 }
 
-// Draw helper: draws 4/5 cells from current rotation + anchor
+// Draw block cells using grid coords
 void RaylibApp::drawBlockCells(const Block& b,
                                const Grid& g,
                                int anchorRow,
                                int anchorCol,
                                Color fill,
-                               bool outlineOnly)
+                               bool ghost)
 {
     auto cells = b.getBlocks();
     Vector2 off = g.getPosition();
     int size = g.getSize();
 
     for (const auto& c : cells) {
-        int row = anchorRow + c.x;
-        int col = anchorCol + c.y;
+        float px = off.x + (float)size * (float)(anchorCol + c.y);
+        float py = off.y + (float)size * (float)(anchorRow + c.x);
 
-        float px = off.x + size * col;
-        float py = off.y + size * row;
+        Rectangle r{px, py, (float)size, (float)size};
 
-        if (!outlineOnly) DrawRectangle(px, py, (float)size, (float)size, fill);
-        DrawRectangleLines(px, py, (float)size, (float)size, BLACK);
+        if (ghost) {
+            // Landing projection
+            DrawRectangleRec(r, Fade(fill, 0.28f));
+            DrawRectangleLinesEx(r, 2.0f, Fade(BLACK, 0.50f));
+            DrawRectangleLinesEx(Rectangle{px + 1, py + 1, (float)size - 2.0f, (float)size - 2.0f},
+                                 1.0f, Fade(RAYWHITE, 0.12f));
+
+            // Small inner highlight
+            DrawRectangleRec(Rectangle{px + 3, py + 3, (float)size - 6.0f, (float)size - 6.0f},
+                             Fade(RAYWHITE, 0.05f));
+        } else {
+            // Normal block
+            DrawRectangleRec(r, fill);
+            DrawRectangleLinesEx(r, 2.0f, Fade(BLACK, 0.75f));
+            DrawRectangleLinesEx(Rectangle{px + 1, py + 1, (float)size - 2.0f, (float)size - 2.0f},
+                                 1.0f, Fade(RAYWHITE, 0.20f));
+        }
     }
 }
 
 // ----------------------
-// START SCREEN (NEW UI)
+// START SCREEN
 // ----------------------
 
 void RaylibApp::drawStartScreen() {
     ClearBackground(BLACK);
 
-    // Background with slight dark overlay
+    // Background + overlay
     DrawTextureEx(background, (Vector2){0.0f, 0.0f}, 0.0f, 1.0f, WHITE);
     DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.35f));
 
-    // Title centered
+    // Title
     const char* title = "TETRIS";
     Vector2 titleSize = MeasureTextEx(uiFont, title, 96.0f, 4.0f);
     Vector2 titlePos = {(float)screenWidth * 0.5f - titleSize.x * 0.5f, 70.0f};
@@ -176,24 +322,22 @@ void RaylibApp::drawStartScreen() {
                {(float)screenWidth * 0.5f - subSize.x * 0.5f, titlePos.y + 110.0f},
                22.0f, 1.0f, Fade(RAYWHITE, 0.85f));
 
-    // Demo animation centered
+    // Demo row
     drawStartAnimation();
 
-    // Central panel
+    // Panel
     float panelW = 420.0f;
     float panelH = 320.0f;
     Rectangle panel = CenterRect(screenWidth * 0.5f, screenHeight * 0.70f, panelW, panelH);
 
-    // Shadow
     Rectangle shadow = panel;
     shadow.x += 6; shadow.y += 8;
     DrawRectangleRounded(shadow, 0.12f, 18, Fade(BLACK, 0.45f));
 
-    // Panel
     DrawRectangleRounded(panel, 0.12f, 18, Fade(RAYWHITE, 0.92f));
     DrawRectangleRoundedLines(panel, 0.12f, 18, Fade(BLACK, 0.35f));
 
-    // Buttons aligned inside panel
+    // Buttons layout
     float btnW = panelW * 0.72f;
     float btnH = 56.0f;
     float cx = panel.x + panelW * 0.5f;
@@ -215,7 +359,8 @@ void RaylibApp::drawStartScreen() {
 
         Vector2 s = MeasureTextEx(uiFont, txt, 28.0f, 2.0f);
         DrawTextEx(uiFont, txt,
-                   {r.x + r.width * 0.5f - s.x * 0.5f, r.y + r.height * 0.5f - s.y * 0.5f},
+                   {r.x + r.width * 0.5f - s.x * 0.5f,
+                    r.y + r.height * 0.5f - s.y * 0.5f},
                    28.0f, 2.0f, DARKBLUE);
     };
 
@@ -229,12 +374,12 @@ void RaylibApp::drawStartScreen() {
 }
 
 void RaylibApp::drawInstructionsOverlay() {
+    // Dark overlay
     DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.55f));
 
     Rectangle card = CenterRect(screenWidth * 0.5f, screenHeight * 0.5f, 640, 360);
     DrawRectangleRounded(card, 0.08f, 14, Fade(RAYWHITE, 0.95f));
     DrawRectangleRoundedLines(card, 0.08f, 14, Fade(BLACK, 0.25f));
-
 
     int x = (int)card.x + 40;
     int y = (int)card.y + 35;
@@ -245,13 +390,13 @@ void RaylibApp::drawInstructionsOverlay() {
     DrawText("ARROWS: move left/right", x, y, 22, DARKGRAY); y += 35;
     DrawText("UP: rotate", x, y, 22, DARKGRAY); y += 35;
     DrawText("HOLD DOWN: soft drop", x, y, 22, DARKGRAY); y += 35;
-    DrawText("ENTER or ESC: back to menu", x, y, 22, DARKGRAY); y += 55;
+    DrawText("ENTER: back to menu", x, y, 22, DARKGRAY); y += 55;
 
     DrawText("Bonus: you may get some 5-block pieces!", x, y, 20, Fade(DARKBLUE, 0.8f));
 }
 
 // ----------------------
-// START ANIMATION
+// DEMO ANIMATION
 // ----------------------
 
 void RaylibApp::buildDemoPieces() {
@@ -267,30 +412,18 @@ void RaylibApp::buildDemoPieces() {
     demoPieces.push_back(std::make_unique<UBlock>());
 }
 
-static void BoundsOfCells(const std::vector<Position>& cells, int& minX, int& maxX, int& minY, int& maxY) {
-    minX =  9999; maxX = -9999;
-    minY =  9999; maxY = -9999;
-    for (auto& p : cells) {
-        minX = std::min(minX, p.x);
-        maxX = std::max(maxX, p.x);
-        minY = std::min(minY, p.y);
-        maxY = std::max(maxY, p.y);
-    }
-}
-
 void RaylibApp::drawStartAnimation() {
     const auto palette = Colors::getColors();
 
-    // Where the demo row lives (under the title)
     float baseY = 220.0f;
     int cell = 18;
     float spacing = 28.0f;
 
-    // Animation: slight vertical bobbing
+    // Smooth motion (draw with floats)
     float t = startTime;
-    float bob = 6.0f * std::sin(t * 2.2f);
+    float bob = 8.0f * std::sin(t * 2.2f);
 
-    // Compute total width of all pieces (using their bounding boxes)
+    // Compute total width to center the row
     float totalW = 0.0f;
     std::vector<float> pieceW;
     pieceW.reserve(demoPieces.size());
@@ -299,40 +432,40 @@ void RaylibApp::drawStartAnimation() {
         auto cells = p->getBlocks();
         int minX, maxX, minY, maxY;
         BoundsOfCells(cells, minX, maxX, minY, maxY);
-        float w = (maxY - minY + 1) * cell;
+        float w = (float)(maxY - minY + 1) * (float)cell;
         pieceW.push_back(w);
         totalW += w;
     }
     totalW += spacing * (float)(demoPieces.size() - 1);
 
-    // Center start X
     float x = (float)screenWidth * 0.5f - totalW * 0.5f;
 
-    // Draw each piece centered in its own box
     for (size_t i = 0; i < demoPieces.size(); i++) {
         const Block& p = *demoPieces[i];
         Color fill = palette[p.getId()];
 
-        // A little time offset per piece for nicer motion
+        // Small per-piece offsets
         float localBob = bob + 4.0f * std::sin(t * 2.2f + (float)i * 0.6f);
+        float drift    = 2.0f * std::sin(t * 1.6f + (float)i * 0.8f);
 
-        // Draw cells
         auto cells = p.getBlocks();
         int minX, maxX, minY, maxY;
         BoundsOfCells(cells, minX, maxX, minY, maxY);
 
-        // Center piece inside its own width
         float boxW = pieceW[i];
-        float originX = x + (boxW * 0.5f);
+        float originX = x + (boxW * 0.5f) + drift;
         float originY = baseY + localBob;
 
-        // Convert local (x=row, y=col) into pixels
-        for (auto& c : cells) {
-            float px = originX + (c.y - (minY + maxY) * 0.5f) * cell;
-            float py = originY + (c.x - (minX + maxX) * 0.5f) * cell;
+        for (const auto& c : cells) {
+            float px = originX + (c.y - (minY + maxY) * 0.5f) * (float)cell;
+            float py = originY + (c.x - (minX + maxX) * 0.5f) * (float)cell;
 
-            DrawRectangle(px, py, (float)cell, (float)cell, fill);
-            DrawRectangleLines(px, py, (float)cell, (float)cell, Fade(BLACK, 0.85f));
+            Rectangle r{px, py, (float)cell, (float)cell};
+
+            DrawRectangleRec(r, fill);
+            DrawRectangleLinesEx(r, 2.0f, Fade(BLACK, 0.80f));
+            DrawRectangleLinesEx(Rectangle{px + 1, py + 1, (float)cell - 2.0f, (float)cell - 2.0f},
+                                 1.0f, Fade(RAYWHITE, 0.18f));
         }
 
         x += boxW + spacing;

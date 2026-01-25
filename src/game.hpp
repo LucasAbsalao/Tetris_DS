@@ -10,13 +10,13 @@
 #include "stats.hpp"
 #include "tetrominoes.hpp"
 
-// Core game class: stores game state and applies Tetris rules
+// Main game logic (state + rules)
 class Game {
 private:
-    std::unique_ptr<Grid> grid;        // Game board
-    std::unique_ptr<Block> block;      // Current falling piece
-    std::unique_ptr<Block> nextBlock;  // Next piece
-    Stat stat;                         // Score / level
+    std::unique_ptr<Grid> grid;
+    std::unique_ptr<Block> block;
+    std::unique_ptr<Block> nextBlock;
+    Stat stat;
 
     int delayToGoDown;
     int normalSpeed;
@@ -25,35 +25,35 @@ private:
     bool goDown;
     bool gameOver;
 
-    std::mt19937 rng;                  // RNG (seeded once)
-    int lastId;                        // Avoid same piece twice in a row
+    std::mt19937 rng;
+    int lastId;
 
     int randomInt(int min, int max);
     bool collidesAt(const Block& b, int anchorRow, int anchorCol) const;
 
-    public:
-        Game(int normalSpeed, int fast_speed, Texture2D background);
-        Game(int normalSpeed, int fastSpeed);
-        unique_ptr<Block> generateBlock();
-        int generateRandomNumber(int limit);
-        void draw();
-        void drawUI();
-        void run();
-        void update();
-        void rotateBlock();
-        Block getBlock();
-        void getMovement();
-        bool CheckCollisionWall(char direction);
-        bool checkCollisionFloor();
-        bool checkCollisionFloor(int positionX);
-        int getProjectionLine(); 
-        void checkGameOver();
+public:
+    Game(int normalSpeed, int fastSpeed);
 
-        
-        bool getGameOver();
+    std::unique_ptr<Block> generateBlock();
 
-        const Grid& getGrid() const;
-        const Block& getCurrentBlock() const;
-        const Block& getNextBlock() const;
-        const Stat& getStats() const;
+    void run();
+    void update();
+    void getMovement();
+    void rotateBlock();
+
+    bool CheckCollisionWall(char direction);
+    bool checkCollisionFloor();
+    bool checkCollisionFloor(int testRow);
+
+    int getProjectionLine();
+
+    void checkGameOver();
+    bool getGameOver();
+
+    Block getBlock();
+
+    const Grid& getGrid() const;
+    const Block& getCurrentBlock() const;
+    const Block& getNextBlock() const;
+    const Stat& getStats() const;
 };

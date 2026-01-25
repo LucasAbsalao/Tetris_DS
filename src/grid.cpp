@@ -34,15 +34,6 @@ void Grid::draw() const {
     }
 }
 
-bool Grid::isThereABlockInTheLine(int line){
-    for(int i=0;i<grid_width;i++){
-        if(grid[line][i]!=0){
-            return true;
-        }
-    }
-    return false;
-}
-
 // Locks the current block into the grid matrix
 void Grid::insertBlock(const Block& block) {
     auto cells = block.getBlocks(); // 4 cells of the current rotation
@@ -123,6 +114,13 @@ string Grid::strGrid() const {
     return str_grid;
 }
 
+// True if at least one cell in the row is not background
+bool Grid::isRowOccupied(int row) const {
+    for (int c = 0; c < grid_width; c++) {
+        if (grid[row][c] != backgroundColor) return true;
+    }
+    return false;
+}
 
 // Getters
 int Grid::getBackgroundColor() const { return backgroundColor; }

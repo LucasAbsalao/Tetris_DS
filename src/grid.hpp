@@ -23,7 +23,6 @@ private:
     int backgroundColor;                // colorId for empty cells
     Vector2 position;                   // top-left pixel position on screen
 
-
 public:
     // Creates a grid filled with backgroundColor = 0
     Grid(int grid_width, int grid_height, int size, Vector2 position);
@@ -52,7 +51,9 @@ public:
     // Clears one row
     void resetLine(int idx_line);
 
-    bool isThereABlockInTheLine(int line);
+    // Checks if the row has at least one block
+    bool isRowOccupied(int row) const;
+
 
     // Basic getters
     int getBackgroundColor() const;
