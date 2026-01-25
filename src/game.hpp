@@ -39,9 +39,9 @@ class Game {
 
     public:
         Game(int normalSpeed, int fastSpeed);
-        std::unique_ptr<Block> generateBlock();
         Game(int normalSpeed, int fastSpeed, float position_x, float position_y);
         std::unique_ptr<Block> generateBlock();
+        std::unique_ptr<Block> generateSpecificBlock(int id);
         int generateRandomNumber(int limit);
         void draw();
         void drawUI();
