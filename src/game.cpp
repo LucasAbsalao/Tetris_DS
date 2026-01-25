@@ -99,6 +99,7 @@ void Game::updateGridStat(int count_lines, int completed_line){
 void Game::update(){
     if(delayToGoDown<actualSpeed){
         delayToGoDown++;
+        return;
     }
     else{
         if(checkCollisionFloor()){
@@ -107,9 +108,19 @@ void Game::update(){
         else{
             moveBlock('D');
         }
-        delayToGoDown = 0;
-    }
-    checkGameOver();
+
+        // Game over rule: top row occupied
+        checkGameOver();
+        if (gameOver) {
+            delayToGoDown = 0;
+            return;
+        }
+
+        // Spawn next
+        std::swap(block, nextBlock);
+        nextBlock = generateBlock();
+    } 
+    delayToGoDown = 0;
 }
 
 void Game::insertBlockInGrid(){
@@ -150,6 +161,8 @@ void Game::getMovement(){
 
 // Rotation with wall-kick + revert if invalid
 void Game::rotateBlock() {
+    if (gameOver) return;
+
     int oldRot = block->getRotationState();
     int oldRow = block->getRow();
     int oldCol = block->getCol();
@@ -160,7 +173,7 @@ void Game::rotateBlock() {
         {0, 0}, {0, -1}, {0, 1}, {0, -2}, {0, 2}, {-1, 0}
     };
 
-    for (auto& k : kicks) {
+    for (const auto& k : kicks) {
         int r = oldRow + k[0];
         int c = oldCol + k[1];
 
@@ -252,9 +265,10 @@ void Game::receiveAttack(int lines){
     }
 }
 
-bool Game::getGameOver(){
+bool Game::getGameOver() {
     return gameOver;
 }
+
 // Getters
 const Grid& Game::getGrid() const { return *grid; }
 const Block& Game::getCurrentBlock() const { return *block; }

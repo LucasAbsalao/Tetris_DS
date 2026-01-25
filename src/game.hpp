@@ -12,7 +12,7 @@
 #include "stats.hpp"
 #include "tetrominoes.hpp"
 
-// Core game class: stores game state and applies Tetris rules
+// Main game logic (state + rules)
 class Game {
     private:
         std::unique_ptr<Grid> grid;        // Game board
