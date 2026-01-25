@@ -75,8 +75,10 @@ int Grid::getCompletedLine(int& count){
 
 void Grid::reallocateLines(int line){
     int temp_line = line;
+    bool line_moving = false;
     for(int i=line-1;i>=0;i--){
-        if(check_how_many_blocks[i]!=0){
+        if(check_how_many_blocks[i]!=0 || line_moving==true){
+            line_moving = true;
             for(int j=0;j<grid_width;j++){
                 setGrid(temp_line,j,grid[i][j]);
             }

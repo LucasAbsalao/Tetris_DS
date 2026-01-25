@@ -4,6 +4,10 @@ NetworkManager::NetworkManager(): id(-1)
 {}
 
 NetworkManager::~NetworkManager(){
+
+    //Resource Acquisition Is Initialization
+    stopThread();
+
     std::cout << "\n\n----------------------- Deleting the client -----------------------\n";
     for(auto const& x:client_map){
         std::cout << "Deleting the client " << x.second << "\n";
@@ -32,12 +36,12 @@ NetworkManager::~NetworkManager(){
             }
         }
         enet_peer_reset (peer);
-    }//TODO: Do something if the disconnection fails.
+    }
 }
 
 void NetworkManager::initEnet(){
-    if(enet_initialize()!=0){ //TODO: Exception
-        std::cout << "An error occurred while initializing ENet\n";
+    if(enet_initialize()!=0){
+        throw EnetException("Could not Initialize ENET.");
     }
     atexit(enet_deinitialize);
 }
@@ -49,19 +53,23 @@ void NetworkManager::initClient(int port){
                               0,
                               0);
     if(client == NULL){ //TODO: Exception
-        std::cout << "An error accurred while trying to create an ENet client host\n";
+        throw EnetException("Could not create an Enet Host.");
     }
 }
 
 void NetworkManager::connectToServer(const char *ip_address, int port){
-    enet_address_set_host(&address, ip_address); // Setting Host Address
+    if (enet_address_set_host(&address, ip_address) != 0) { // Setting Host Address
+        throw EnetException("Could not resolve the address");
+        return; 
+    }
     address.port = port;
 
     std::cout << address.host << ":" << address.port << "\n";
 
+    
     peer = enet_host_connect(client, &address, 2, 0); // Connecting to Host with 2 channels (a reliable one to grid and stats | an unreliable to block)
     if(peer==NULL){ //TODO: Exception
-        fprintf(stderr, "No available peers for initiating an ENet connection\n");
+        throw EnetException("No available peers for initiating an ENet connection\n");
     }
 
     int eventStatus = enet_host_service(client, &event, 5000);
@@ -70,26 +78,44 @@ void NetworkManager::connectToServer(const char *ip_address, int port){
         if (event.type == ENET_EVENT_TYPE_CONNECT) {
             std::cout << "SUCESSO! Conectado ao servidor.\n";
         } else {
-            std::cout << "ESTRANHO: Recebi um evento, mas não foi CONNECT. Tipo: " << event.type << "\n";
+            std::cout << "Strange: A non connect event was captures. Type: " << event.type << "\n";
         }
     } else if (eventStatus == 0) {
-        std::cout << "TIMEOUT: O servidor não respondeu em 5 segundos.\n";
         enet_peer_reset(peer);
+        throw ServerConnectionException();
     } else {
-        std::cout << "ERRO: Falha na função enet_host_service.\n";
+        throw EnetException("Fail in the enet_host_service function.\n");
+    }
+    startThread();
+}
+
+void NetworkManager::startThread() {
+    shouldRun = true;
+    netThread = std::thread(&NetworkManager::readNetwork, this);
+}
+
+void NetworkManager::stopThread() {
+    shouldRun = false;
+    if (netThread.joinable()) {
+        netThread.join();
     }
 }
 
 void NetworkManager::readNetwork(){
-    while(enet_host_service(client, &event, 0)>0){
+    while(shouldRun){
+        int serviceResult = 0;
+        //Lock Mutex so that the main thread can't send informations at the same time
+        {
+            std::lock_guard<std::mutex> lock(enetMutex); 
+            serviceResult = enet_host_service(client, &event, 10);
+        }
+
+        if(serviceResult<=0){
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            continue;
+        }
         switch(event.type){
             case ENET_EVENT_TYPE_RECEIVE:{
-                // printf("A packet of length %lu was received from %x:%u on channel %d.\n",
-                //         event.packet->dataLength,
-                //         event.peer->address.host,
-                //         event.peer->address.port,
-                //         event.channelID);
-
                 if(event.packet->dataLength > 0){
                     uint8_t *rawData = static_cast<uint8_t*>(event.packet->data);
                     MessageType type = static_cast<MessageType>(rawData[0]);
@@ -98,8 +124,13 @@ void NetworkManager::readNetwork(){
                     gp.type = type;
 
                     gp.data.assign(rawData, rawData + event.packet->dataLength);
+                    
+                    //Lock the Queue mutex to prevent the MultiplayerGame to pop informations at the same time
+                    {
+                        std::lock_guard<std::mutex> queueLock(queueMutex);
+                        packetQueue.push(gp);
+                    }
 
-                    packetQueue.push(gp);
                 }
 
                 enet_packet_destroy(event.packet);
@@ -114,6 +145,8 @@ void NetworkManager::readNetwork(){
 }
 
 bool NetworkManager::pollPacket(GamePacket& outPacket) {
+    //Lock the queue to extract informations;
+    std::lock_guard<std::mutex> lock(queueMutex);
     if (packetQueue.empty()) {
         return false; 
     }
@@ -129,5 +162,10 @@ void NetworkManager::sendPacket(const void *data, int size, PacketType flag){
     ENetPacket *packet = enet_packet_create(data, size, enetFlag);
 
     int channel = (flag == PacketType::Reliable) ? 1 : 0;
-    enet_peer_send(peer, channel, packet);
+
+    //Locking the enet mutex so that enet_host_service is not called at the same time as enet_peer_send
+    {
+        std::lock_guard<std::mutex> lock(enetMutex);
+        enet_peer_send(peer, channel, packet);
+    }
 }

@@ -44,7 +44,9 @@ void GameRemote::setRemoteGrid(GridPacket packet){
 void GameRemote::setRemoteStat(StatPacket packet){
     Stat& s = getStatRef();
     s.setScore(packet.score);
-    s.setLevel(packet.level);
+    s.setLevel(static_cast<int>(packet.level));
+
+    std::cout << "Level: " << s.getLevel() << "\n";
 }
 
 void GameRemote::setRemoteGameOver(GameOverPacket packet){

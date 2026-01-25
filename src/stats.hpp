@@ -11,7 +11,7 @@ class Stat{
     private:
         int score;
         int level;
-        std::vector<int> how_many_blocks; //TODO: E se eu tiver mais de 7 blocos?????? Por isso troquei para vector
+        std::vector<int> how_many_blocks; 
         std::array<int, 4> points;
 
     public:

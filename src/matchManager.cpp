@@ -41,12 +41,9 @@ void MatchManager::checkStartMatch(){
         start = false;
     }
 }
-// void matchManager::handlePacket(){
 
-// }
-
-void MatchManager::run() {
-    net->readNetwork();
+void MatchManager::handlePacket(){
+    //net->readNetwork();
 
     GamePacket packet;
     
@@ -127,6 +124,10 @@ void MatchManager::run() {
             }
         }
     }
+}
+
+void MatchManager::run() {
+    handlePacket();
     
     if(start){
         player1.run();

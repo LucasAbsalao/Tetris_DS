@@ -20,6 +20,7 @@ class MatchManager {
         MatchManager(int normalSpeed, int fast_speed, Texture2D background, const std::string& address, int port_host);
         ~MatchManager();
         bool allPlayersAreReady();
+        void handlePacket();
         void checkStartMatch();
         void readyToStart();
         void init();

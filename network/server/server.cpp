@@ -4,8 +4,8 @@ Server::Server(): id_new_client(0), server(nullptr)
 {}
 
 void Server::initEnet(){
-    if(enet_initialize()!=0){ //TODO: Exception
-        std::cout << "An error occurred while initializing ENet\n";
+    if(enet_initialize()!=0){
+        throw EnetException("Could not Initialize ENET.");
     }
     atexit(enet_deinitialize);
 }
@@ -16,12 +16,12 @@ void Server::initServer(int port){
     std::cout << address.host << ":" << address.port << "\n";
 
     server = enet_host_create(&address,
-                              32,
-                              2,
+                              4,//4 Connections
+                              2,//2 Channels
                               0,
                               0);
-    if(server==NULL){ //TODO:: Exception
-        std::cout << "An error occurred while trying to create an ENet Host\n";
+    if(server==NULL){ 
+        throw EnetException("Could not create an Enet Host.");
     }
 }
 
@@ -95,8 +95,8 @@ void Server::parseMessage(int sender_id, void *data){ //TODO: Check size
     }
 }
 
-void Server::handlePacket(){ //TODO: Test if the messageType variable is already initialized the right way
-    while(enet_host_service(server, &event, 0)>0){
+void Server::handlePacket(){
+    while(enet_host_service(server, &event, 15)>0){
         switch(event.type){
             case ENET_EVENT_TYPE_CONNECT:{
                 std::cout << "A new client is trying to connect from " << event.peer->address.host << ":" << event.peer->address.port << "\n";
@@ -145,9 +145,7 @@ void Server::handlePacket(){ //TODO: Test if the messageType variable is already
                 break;
             }
             case ENET_EVENT_TYPE_DISCONNECT:{
-                printf("%x:%u disconnected.\n",
-                        event.peer->address.host,
-                        event.peer->address.port);
+                std::cout << event.peer->address.host << ":" << event.peer->address.port << "disconnected.\n";
                 
                 DisconnectPacket disconnectPkt;
                 

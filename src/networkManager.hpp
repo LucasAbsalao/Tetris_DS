@@ -5,9 +5,13 @@
 #include<map>
 #include<cstdint>
 #include<queue>
+#include <mutex>
+#include <thread>
+#include <atomic>
 
 #include"network/clientData.hpp"
 #include"network/networkStructures.hpp"
+#include"network/networkExceptions.hpp"
 
 class NetworkManager{
     private:
@@ -15,13 +19,24 @@ class NetworkManager{
         ENetEvent event;
         ENetPeer *peer;
         ENetHost *client;
+
         std::map<int, ClientData*> client_map;
+
         int id;
         std::queue<GamePacket> packetQueue;
+
+        //Concurrence
+        std::mutex queueMutex; // Protects packetQueue
+        std::mutex enetMutex;  // Protects ENET calls
+
+        std::atomic<bool> shouldRun; // Flag to start and stop the thread
+        std::thread netThread;       // The thread
 
     public:
         NetworkManager();
         ~NetworkManager();
+        void startThread();
+        void stopThread();
         void initEnet();
         void initClient(int port);
         void connectToServer(const char *ip_address, int port);

@@ -47,7 +47,7 @@ class Game
         virtual void rotateBlock();
         virtual void insertBlockInGrid();
         virtual void updateGridStat(int count_lines, int completed_line);
-        virtual void receiveAttack(int lines); //TODO: Maybe just in GameMultiplayer?
+        virtual void receiveAttack(int lines); 
         bool CheckCollisionWall(char direction);
         bool checkCollisionFloor();
         bool checkCollisionFloor(int positionX);

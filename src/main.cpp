@@ -111,11 +111,26 @@ int main(){
                 }
 
                 if (IsKeyPressed(KEY_ENTER) && letterCount > 0) {
-
-                    match.init();
-                    match.setLocalPlayerName(std::string(name)); 
+                    try{
+                        match.init();
+                        match.setLocalPlayerName(std::string(name));
+                        gameState = PLAYING_MULTIPLAYER;
+                    }
+                    catch (const ServerConnectionException& e) {
+                        std::cerr << "[Attention] " << e.what() << "\n";
+                        gameState = START_SCREEN;
+                    }
+                    // Captura erros genéricos da sua rede
+                    catch (const EnetException& e) {
+                        std::cerr << "[NetworkError] " << e.what() << "\n";
+                        return -1; 
+                    }
+                    // Captura qualquer outra loucura
+                    catch (const std::exception& e) {
+                        std::cerr << "[CRASH] " << e.what() << "\n";
+                        return -1;
+                    }
                     
-                    gameState = PLAYING_MULTIPLAYER;
                 }
                 framesCounter++;
                 break;
