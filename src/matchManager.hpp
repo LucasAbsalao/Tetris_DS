@@ -11,6 +11,8 @@ class MatchManager {
         int savedFastSpeed;
         Texture2D savedBackground;
         bool start;
+        bool win;
+        bool end;
 
         std::shared_ptr<NetworkManager> net;
         GameMultiplayer player1;
@@ -28,6 +30,11 @@ class MatchManager {
         void setLocalPlayerName(const std::string& name);
         void draw();
         void run();
+        void checkWin();
+        void checkEnd();
+        
+        bool getWin() const;
+        bool getEnd() const;
         const GameMultiplayer& getPlayer1() const;
         GameRemote* getPlayer2() const;
 };

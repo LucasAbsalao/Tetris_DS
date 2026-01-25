@@ -9,6 +9,7 @@ class GameRemote : public Game {
         uint8_t id_client;
         std::string username;
         bool readyToStart;
+        bool connected;
 
     public:
         GameRemote(int normalSpeed, int fastSpeed, int position_x, int position_y, uint8_t id_client);
@@ -17,8 +18,9 @@ class GameRemote : public Game {
         virtual void rotateBlock() override;
         virtual void insertBlockInGrid() override;
         virtual void updateGridStat(int count_lines, int completed_line) override;
-        
-        
+
+
+        void wasDisconnected(); 
         void setUsername(std::string name);
         void setRemoteReady(ReadyPacket packet);
         void setRemoteGameOver(GameOverPacket packet);
@@ -27,6 +29,7 @@ class GameRemote : public Game {
         void setRemoteStat(StatPacket packet);
 
         uint8_t getId() const;
+        bool getConnected() const;
         bool getReadyToStart() const;
         const std::string& getUsername() const;
 };

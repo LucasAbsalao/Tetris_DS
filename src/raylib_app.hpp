@@ -3,12 +3,17 @@
 #include <raylib.h>
 #include <vector>
 #include <memory>
+#include <algorithm>
+#include <cmath>
+
 
 #include "game.hpp"
 #include "block.hpp"
 #include "grid.hpp"
 #include "stats.hpp"
 #include "matchManager.hpp"
+#include "colors.hpp"
+#include "tetrominoes.hpp"
 
 // App screens
 enum class AppState {
@@ -37,7 +42,7 @@ private:
     void drawStartScreen();
     void drawInstructionsOverlay();
     void drawGameplayBackground();
-    void drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow);
+    void drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow, bool gameOver, bool win);
     void drawInputUsername();
     void drawMatch();
     void drawHUD(Vector2 gridPos, const Stat& st);
@@ -81,5 +86,5 @@ private:
 
     // Game logic
     Game game;
-    MatchManager match;
+    std::unique_ptr<MatchManager> match;
 };

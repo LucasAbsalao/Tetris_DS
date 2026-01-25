@@ -6,6 +6,7 @@ GameRemote::GameRemote(int normalSpeed,
                        int position_y,
                        uint8_t id_client): Game(normalSpeed, fastSpeed, position_x, position_y),
                                            id_client(id_client),
+                                           connected(true),
                                            readyToStart(false)
 
 {} 
@@ -20,6 +21,10 @@ void GameRemote::updateGridStat(int count_lines, int completed_line){}
 
 void GameRemote::moveBlock(char direction){}
 
+void GameRemote::wasDisconnected(){
+    connected = false;
+}
+
 void GameRemote::setRemoteBlock(BlockPacket packet){
     Block *block_ptr = getCurrentBlockPtr();
     if(block_ptr!=nullptr && packet.id_block == block_ptr->getId()){
@@ -27,7 +32,7 @@ void GameRemote::setRemoteBlock(BlockPacket packet){
         block_ptr->setRotationState(packet.rotation);
     }
     else{
-        std::cout << "Id do bloco: " << static_cast<int>(packet.id_block);
+        std::cout << "Id do bloco: " << static_cast<int>(packet.id_block) << std::endl;
         spawnBlock(packet.x, packet.y, packet.id_block, packet.rotation);
     }
 }
@@ -65,6 +70,10 @@ void GameRemote::setUsername(std::string name){
 
 uint8_t GameRemote::getId() const{
     return id_client;
+}
+
+bool GameRemote::getConnected() const{
+    return connected;
 }
 
 bool GameRemote::getReadyToStart() const{

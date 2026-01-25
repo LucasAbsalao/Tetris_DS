@@ -58,7 +58,7 @@ class Game {
         bool checkCollisionFloor(int positionX) const;
         void checkGameOver();
 
-        bool getGameOver();
+        bool getGameOver() const;
         int getProjectionLine() const; 
         const Grid& getGrid() const;
         const Block& getCurrentBlock() const;

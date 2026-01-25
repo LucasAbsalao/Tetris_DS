@@ -1,14 +1,11 @@
 // raylib_app.cpp
 #include "raylib_app.hpp"
-#include "colors.hpp"
-#include "tetrominoes.hpp"
-
-#include <algorithm>
-#include <cmath>
 
 // Keep speeds for restart (no header changes)
 static int sNormalSpeed = 0;
 static int sFastSpeed   = 0;
+static std::string sServerAddress = "";
+static int sPort = 0;
 
 RaylibApp::RaylibApp(int screenW, int screenH, int normalSpeed, int fastSpeed, std::string serverAddress, int port)
     : screenWidth(screenW),
@@ -24,12 +21,14 @@ RaylibApp::RaylibApp(int screenW, int screenH, int normalSpeed, int fastSpeed, s
       framesCounter(0),
       letterCount(0),
       name("\0"),
-      game(normalSpeed, fastSpeed),
-      match(normalSpeed, fastSpeed, serverAddress, port)
+      game(normalSpeed, fastSpeed, 500, 65),
+      match(std::make_unique<MatchManager>(normalSpeed, fastSpeed, serverAddress, port))
 {
     // Store speeds for restart
     sNormalSpeed = normalSpeed;
     sFastSpeed   = fastSpeed;
+    sServerAddress = serverAddress;
+    sPort = port;
 
     InitWindow(screenWidth, screenHeight, "Tetris");
     SetExitKey(KEY_NULL); // Disable default ESC-to-close
@@ -93,18 +92,20 @@ static void DrawBlockPreview(const Block& b, Rectangle panel, Color fill, int ce
 }
 
 // Game over overlay
-static void DrawGameOverOverlay(int screenW, int screenH, Font font, const Stat& st) {
+static void DrawGameOverOverlay(int screenW, int screenH, Font font, const Stat& st, bool gameWin) {
     DrawRectangle(0, 0, screenW, screenH, Fade(BLACK, 0.65f));
 
     Rectangle card = CenterRect(screenW * 0.5f, screenH * 0.5f, 560, 300);
     DrawRectangleRounded(card, 0.10f, 14, Fade(RAYWHITE, 0.95f));
     DrawRectangleRoundedLines(card, 0.10f, 14, Fade(BLACK, 0.25f));
 
-    const char* title = "GAME OVER";
-    Vector2 tSize = MeasureTextEx(font, title, 52.0f, 2.0f);
-    DrawTextEx(font, title,
+    const char* titleLost = "GAME OVER";
+    const char* titleWin = "GAME WIN";
+
+    Vector2 tSize = MeasureTextEx(font, gameWin ? titleWin : titleLost, 52.0f, 2.0f);
+    DrawTextEx(font, gameWin ? titleWin : titleLost,
                {card.x + card.width * 0.5f - tSize.x * 0.5f, card.y + 40},
-               52.0f, 2.0f, MAROON);
+               52.0f, 2.0f, gameWin ? SKYBLUE : MAROON);
 
     // Show final score
     std::string scoreLine = "Score: " + st.strScore();
@@ -198,8 +199,8 @@ void RaylibApp::processInput() {
         if (IsKeyPressed(KEY_ENTER) && letterCount > 0) {
             try {
                 // Connects to web
-                match.init(); 
-                match.setLocalPlayerName(std::string(name));
+                match->init(); 
+                match->setLocalPlayerName(std::string(name));
                 
                 // Go to multiplayer
                 state = AppState::Multiplayer; 
@@ -224,7 +225,11 @@ void RaylibApp::processInput() {
         }
     }
     else if(state == AppState::Multiplayer){
-        if(IsKeyPressed(KEY_ENTER)) match.readyToStart();
+        if(IsKeyPressed(KEY_ENTER)) match->readyToStart();
+        if (IsKeyPressed(KEY_M) || IsKeyPressed(KEY_BACKSPACE)) {
+            state = AppState::StartScreen;
+            match = std::make_unique<MatchManager>(sNormalSpeed, sFastSpeed, sServerAddress, sPort);
+        }
     }  
     else if (state == AppState::Playing) {
         // Restart when game is over
@@ -262,30 +267,34 @@ void RaylibApp::update() {
         }
     }
     else if (state == AppState::Multiplayer) {
-        match.run(); 
+        match->run(); 
     }
 }
 
 void RaylibApp::draw() {
     if (state == AppState::Playing) {
         drawGameplayBackground();
-        drawGameplay(game.getGrid(), game.getCurrentBlock(), game.getStats(), game.getProjectionLine());
+        drawGameplay(game.getGrid(), game.getCurrentBlock(), game.getStats(), game.getProjectionLine(), game.getGameOver(), false);
     }
     else if (state == AppState::Multiplayer) {
         drawGameplayBackground();
-        //Draw local player
-        drawGameplay(match.getPlayer1().getGrid(), 
-                    match.getPlayer1().getCurrentBlock(), 
-                    match.getPlayer1().getStats(), 
-                    match.getPlayer1().getProjectionLine());
 
         // Draw remote player
-        if (match.getPlayer2() != nullptr) {
-            drawGameplay(match.getPlayer2()->getGrid(), 
-                        match.getPlayer2()->getCurrentBlock(), 
-                        match.getPlayer2()->getStats(), 
-                        -1); // Geralmente não desenhamos o ghost do oponente
+        if (match->getPlayer2() != nullptr) {
+            drawGameplay(match->getPlayer2()->getGrid(), 
+                        match->getPlayer2()->getCurrentBlock(), 
+                        match->getPlayer2()->getStats(), 
+                        -1,
+                        false,
+                        false); // Geralmente não desenhamos o ghost do oponente
         }
+        //Draw local player
+        drawGameplay(match->getPlayer1().getGrid(), 
+                    match->getPlayer1().getCurrentBlock(), 
+                    match->getPlayer1().getStats(), 
+                    match->getPlayer1().getProjectionLine(),
+                    match->getEnd(),
+                    match->getWin());
     }
     else if (state == AppState::InputUsername) drawInputUsername();
     else drawStartScreen();
@@ -299,7 +308,7 @@ void RaylibApp::drawGameplayBackground(){
     DrawTextureEx(background, (Vector2){(float)background.width, 0.0f}, 0.0f, 1.0f, WHITE);
 }
 
-void RaylibApp::drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow) {
+void RaylibApp::drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow, bool gameOver, bool win) {
     // Draw the grid
     drawGrid(g);
 
@@ -307,7 +316,6 @@ void RaylibApp::drawGameplay(const Grid& g, const Block& b, const Stat& st, int 
     Color fill = palette[b.getId()];
 
     // Ghost first (behind the piece)
-    int projRow = game.getProjectionLine();
     if (projRow != -1) {
         drawBlockCells(b, g, projRow, b.getCol(), fill, true);
     }
@@ -320,12 +328,13 @@ void RaylibApp::drawGameplay(const Grid& g, const Block& b, const Stat& st, int 
         drawBlockCells(b, g, projRow, b.getCol(), fill, true);
     }
 
-    if (game.getGameOver()) {
-        DrawGameOverOverlay(screenWidth, screenHeight, uiFont, game.getStats());
-    }
-
-    // Passamos o Stat para o HUD também ser genérico
+    // Draw Hud
     drawHUD(g.getPosition(), st);
+
+    //Draw GameOver Screen
+    if (gameOver) {
+        DrawGameOverOverlay(screenWidth, screenHeight, uiFont, st, win);
+    }
 }
 
 void RaylibApp::drawInputUsername() {
@@ -385,8 +394,8 @@ void RaylibApp::drawHUD(Vector2 gridPos, const Stat& st) {
     DrawText(st.strScore().c_str(), hudX + 35, 90, 60, WHITE);
 
     // Next block box
-    DrawText("NEXT", 470, 190, 30, WHITE);
-    Rectangle nextPanel = Rectangle{400, 220, 200, 150};
+    DrawText("NEXT", hudX, 190, 30, WHITE);
+    Rectangle nextPanel = Rectangle{hudX-55, 220, 200, 150};
     DrawRectangleRec(nextPanel, Fade(BLACK, 0.35f));
     DrawRectangleLinesEx(nextPanel, 2.0f, Fade(BLACK, 0.55f));
 
@@ -395,7 +404,7 @@ void RaylibApp::drawHUD(Vector2 gridPos, const Stat& st) {
     DrawBlockPreview(next, nextPanel, nextFill, 20);
 
     DrawText("LEVEL", hudX, 550, 30, WHITE);
-    DrawRectangle(400, hudX-55, 200, 90, Fade(BLACK, 0.35f));
+    DrawRectangle(hudX-55, 585, 200, 90, Fade(BLACK, 0.35f));
     DrawText(st.strLevel().c_str(), hudX + 35, 590, 60, WHITE);
 }
 

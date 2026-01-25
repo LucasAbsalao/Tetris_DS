@@ -108,19 +108,9 @@ void Game::update(){
         else{
             moveBlock('D');
         }
-
-        // Game over rule: top row occupied
-        checkGameOver();
-        if (gameOver) {
-            delayToGoDown = 0;
-            return;
-        }
-
-        // Spawn next
-        std::swap(block, nextBlock);
-        nextBlock = generateBlock();
-    } 
-    delayToGoDown = 0;
+        delayToGoDown=0;
+    }
+    checkGameOver();
 }
 
 void Game::insertBlockInGrid(){
@@ -265,7 +255,7 @@ void Game::receiveAttack(int lines){
     }
 }
 
-bool Game::getGameOver() {
+bool Game::getGameOver() const{
     return gameOver;
 }
 

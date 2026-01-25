@@ -7,6 +7,8 @@ MatchManager::MatchManager(int normalSpeed,
                                            player1(normalSpeed, fastSpeed, net, address, port_host),
                                            player2(nullptr),
                                            start(false),
+                                           win(false),
+                                           end(false),
                                            savedNormalSpeed(normalSpeed),
                                            savedFastSpeed(fastSpeed)
 {}
@@ -28,7 +30,7 @@ void MatchManager::createRemoteGame(UsernamePacket packet){
 }
 
 bool MatchManager::allPlayersAreReady(){
-    return (player1.getReadyToStart() && player2->getReadyToStart());
+    return (player1.getReadyToStart() && player2!=nullptr && player2->getReadyToStart());
 }
 
 void MatchManager::checkStartMatch(){
@@ -92,6 +94,7 @@ void MatchManager::handlePacket(){
                     if(player2->getId() == gameoverPkt->id){
                         player2->setRemoteGameOver(*gameoverPkt);
                         std::cout << "Player " << player2->getUsername() << " lost!!!" << "\n";
+                        checkWin();
                     }
                 }
                 break;
@@ -108,7 +111,9 @@ void MatchManager::handlePacket(){
                 if(player2 != nullptr && packet.data.size()>=sizeof(DisconnectPacket)){
                     DisconnectPacket *disconPkt = reinterpret_cast<DisconnectPacket*>(packet.data.data());
                     if(player2->getId() == disconPkt->id)
+                        player2->wasDisconnected();
                         std::cout << "Player " << player2->getUsername() << " Disconnected\n";
+                        checkWin();
                 }
                 break;
             }
@@ -125,13 +130,16 @@ void MatchManager::handlePacket(){
 }
 
 void MatchManager::run() {
-    handlePacket();
-    
-    if(start){
-        player1.run();
-    }
-    else{
-        checkStartMatch();
+    if(!end){
+        handlePacket();
+        
+        if(start){
+            player1.run();
+        }
+        else{
+            checkStartMatch();
+        }
+        checkEnd();
     }
 }
 
@@ -141,6 +149,24 @@ void MatchManager::setLocalPlayerName(const std::string& name) {
 
 void MatchManager::readyToStart(){
     player1.setReady(true);
+}
+
+void MatchManager::checkWin(){
+    if(player2!=nullptr)
+        win = (player1.getStats().getScore() > player2->getStats().getScore());
+}
+
+void MatchManager::checkEnd(){
+    if(player2!=nullptr)
+        end = (player1.getGameOver() && (player2->getGameOver() || !player2->getConnected()));
+}
+
+bool MatchManager::getWin() const{
+    return win; 
+}
+
+bool MatchManager::getEnd() const{
+    return end; 
 }
 
 
