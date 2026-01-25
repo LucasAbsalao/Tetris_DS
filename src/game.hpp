@@ -1,49 +1,49 @@
 #pragma once
 
 #include <memory>
+#include <random>
+
 #include "block.hpp"
 #include "grid.hpp"
 #include "stats.hpp"
 
-using namespace std;
-
-// Core game class: stores game state and applies Tetris rules (no rendering)
-class Game
-{
+// Core game class: stores game state and applies Tetris rules
+class Game {
 private:
-    unique_ptr<Grid> grid;        // Game board
-    unique_ptr<Block> block;      // Current falling block
-    unique_ptr<Block> nextBlock;  // Next block preview
-    Stat stat;                    // Score/level/lines
+    std::unique_ptr<Grid> grid;        // Game board
+    std::unique_ptr<Block> block;      // Current falling piece
+    std::unique_ptr<Block> nextBlock;  // Next piece
+    Stat stat;                         // Score / level
 
-    int delayToGoDown;            // Fall timer counter
-    int normalSpeed;              // Normal fall speed
-    int fastSpeed;                // Fast fall speed (soft drop)
-    int actualSpeed;              // Current speed in use
-    bool goDown;                  // Soft drop state flag
+    int delayToGoDown;
+    int normalSpeed;
+    int fastSpeed;
+    int actualSpeed;
+    bool goDown;
+
+    std::mt19937 rng;                  // RNG (seeded once)
+    int lastId;                        // Avoid same piece twice in a row
+
+private:
+    int randomInt(int min, int max);
+    bool collidesAt(const Block& b, int anchorRow, int anchorCol) const;
 
 public:
-    // Constructor with speed configuration (no Texture2D here anymore)
-    Game(int normalSpeed, int fast_speed);
+    Game(int normalSpeed, int fastSpeed);
 
-    unique_ptr<Block> generateBlock();
-    int generateRandomNumber(int limit);
+    std::unique_ptr<Block> generateBlock();
 
-    void run();       // High-level step: input + update + line clear
-    void update();    // Gravity / locking
-
+    void run();
+    void update();
     void rotateBlock();
-    Block getBlock();
-
-    void getMovement(); // Input-based movement (kept here by request)
+    void getMovement();
 
     bool CheckCollisionWall(char direction);
     bool checkCollisionFloor();
-    bool checkCollisionFloor(int positionX);
-
+    bool checkCollisionFloor(int testRow);
     int getProjectionLine();
 
-    // Read-only access for rendering (no ownership transfer)
+    // Read-only access
     const Grid& getGrid() const;
     const Block& getCurrentBlock() const;
     const Block& getNextBlock() const;

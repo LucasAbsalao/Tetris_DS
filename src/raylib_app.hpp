@@ -1,9 +1,15 @@
 #pragma once
 
 #include <raylib.h>
-#include "game.hpp"
+#include <vector>
+#include <memory>
 
-// Application states (menu/game/instructions)
+#include "game.hpp"
+#include "block.hpp"
+#include "grid.hpp"
+#include "stats.hpp"
+
+// App screens
 enum class AppState {
     StartScreen,
     Playing,
@@ -19,37 +25,45 @@ public:
     void run();
 
 private:
-    void processInput();  // menu/instructions input
-    void update();        // updates the game when playing
-    void draw();          // draws current screen
+    void processInput();
+    void update();
+    void draw();
 
-    // UI screens
+    // Screens
     void drawStartScreen();
     void drawInstructionsOverlay();
-
-    // Gameplay rendering (now handled here, since Game::draw was removed)
     void drawGameplay();
     void drawHUD();
+
+    // Helpers
+    void drawBlockCells(const Block& b,
+                        const Grid& g,
+                        int anchorRow,
+                        int anchorCol,
+                        Color fill,
+                        bool outlineOnly);
+
+    void buildDemoPieces();    // creates one instance of each piece
+    void drawStartAnimation(); // animated “piece showcase”
 
 private:
     int screenWidth;
     int screenHeight;
-
     AppState state;
 
-    // Raylib resources (owned by the app)
+    // Raylib resources
     Texture2D background;
+    Font uiFont;
 
     // UI buttons
     Rectangle startButton;
     Rectangle instructionsButton;
     Rectangle exitButton;
 
-    // Core game (logic only)
+    // Start screen animation
+    float startTime;
+    std::vector<std::unique_ptr<Block>> demoPieces;
+
+    // Game logic
     Game game;
 };
-
-
-
-
-
