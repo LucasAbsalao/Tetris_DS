@@ -1,44 +1,66 @@
-#include<vector>
-#include<raylib.h>
-#include<iostream>
-#include<memory>
-#include<random>
-#include<ctime>
+#pragma once
 
-#include"colors.hpp"
-#include"block.hpp"
+#include <vector>
+#include <string>
+#include <raylib.h>
+
+#include "colors.hpp"
+#include "block.hpp"
 
 using namespace std;
 
+// Represents the Tetris board as a matrix of color IDs
 class Grid
 {
-    private:
-        vector<vector<int>> grid;
-        vector<int> check_how_many_blocks;
-        vector<Color> colors;
-        int grid_width;
-        int grid_height;
-        int size;
-        int backgroundColor;
-        Vector2 position;
+private:
+    vector<vector<int>> grid;           // grid[row][col] = colorId
+    vector<int> check_how_many_blocks;  // filled cells count per row
+    vector<Color> colors;               // color palette
 
-    public:
-        Grid(int grid_width, int grid_height, int size, Vector2 position);
-        Grid(int grid_width, int grid_height, int size, Vector2 position, int backgroundColor);
-        string strGrid();
-        void draw();
-        void setGrid(int x, int y, int idx_color);
-        void insertBlock(Block block); //TODO: talvez modificar isso
-        int getCompletedLine(int& count);
-        void reallocateLines(int line);
-        void resetLine(int idx_line);
-        bool isThereABlockInTheLine(int line);
-        //TODO fazer os gets
+    int grid_width;                     // number of columns
+    int grid_height;                    // number of rows
+    int size;                           // cell size in pixels
+    int backgroundColor;                // colorId for empty cells
+    Vector2 position;                   // top-left pixel position on screen
 
-        int getBackgroundColor();
-        Vector2 getPosition();
-        int getGridHeight();
-        int getGridWidth();
-        int getSize();
-        int getColorXY(int x, int y);
+
+public:
+    // Creates a grid filled with backgroundColor = 0
+    Grid(int grid_width, int grid_height, int size, Vector2 position);
+
+    // Creates a grid filled with a custom background colorId
+    Grid(int grid_width, int grid_height, int size, Vector2 position, int backgroundColor);
+
+    // Returns a debug string showing the grid contents
+    string strGrid() const;
+
+    // Draws the grid cells using the color palette
+    void draw() const;
+
+    // Sets one cell to a given colorId
+    void setGrid(int x, int y, int idx_color);
+
+    // Writes a block cells into the grid (locks the piece)
+    void insertBlock(const Block& block);
+
+    // Detects full lines and clears them
+    int getCompletedLine(int& count);
+
+    // Shifts lines down after a clear
+    void reallocateLines(int line);
+
+    // Clears one row
+    void resetLine(int idx_line);
+
+    bool isThereABlockInTheLine(int line);
+
+    // Basic getters
+    int getBackgroundColor() const;
+    Vector2 getPosition() const;
+    int getGridHeight() const;
+    int getGridWidth() const;
+    int getSize() const;
+
+    // Returns the colorId stored at a given cell
+    int getColorXY(int x, int y) const;
 };

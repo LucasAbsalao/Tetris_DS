@@ -1,9 +1,33 @@
 #include "colors.hpp"
 
-vector<Color> Colors::getColors(){
+// Returns the color palette used by the game
+vector<Color> Colors::getColors() {
+    // Color list indexed by color ID
     vector<Color> c = {
-        MY_BLACK, DARKGRAY, MAROON, ORANGE, DARKGREEN, DARKBLUE, DARKPURPLE, DARKBROWN,
-        GRAY, RED, GOLD, LIME, BLUE, VIOLET, BROWN, LIGHTGRAY, PINK, YELLOW,
-        GREEN, SKYBLUE, PURPLE, BEIGE };
+        MY_BLACK,     // background / empty cell
+        DARKGRAY,
+        MAROON,
+        ORANGE,
+        DARKGREEN,
+        DARKBLUE,
+        DARKPURPLE,
+        DARKBROWN,
+        GRAY,
+        RED,
+        GOLD,
+        LIME,
+        BLUE,
+        VIOLET,
+        BROWN,
+        LIGHTGRAY,
+        PINK,
+        YELLOW,
+        GREEN,
+        SKYBLUE,
+        PURPLE,
+        BEIGE
+    };
+
+    // Return the palette
     return c;
 }

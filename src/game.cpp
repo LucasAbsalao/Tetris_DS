@@ -1,94 +1,77 @@
 #include "game.hpp"
-#include "colors.hpp"
 
-Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(make_unique<Grid>(10,24,25,(Vector2){125,65},0)), 
-                                                                   colors(Colors::getColors()), 
-                                                                   block(generateBlock()), 
-                                                                   nextBlock(generateBlock()),
-                                                                   backgroundImg(background),
-                                                                   stat(Stat()),
-                                                                   normalSpeed(normalSpeed),
-                                                                   fastSpeed(fastSpeed),
-                                                                   actualSpeed(normalSpeed),
-                                                                   goDown(false),
-                                                                   delayToGoDown(0),
-                                                                   gameOver(false)
-{}
+// Constructor
+Game::Game(int normalSpeed, int fastSpeed)
+    : grid(std::make_unique<Grid>(10, 24, 25, (Vector2){125, 65}, 0)),
+      stat(Stat()),
+      normalSpeed(normalSpeed),
+      fastSpeed(fastSpeed),
+      actualSpeed(normalSpeed),
+      goDown(false),
+      delayToGoDown(0),
+      rng(std::random_device{}()),
+      lastId(-1)
+{
+    block = generateBlock();
+    nextBlock = generateBlock();
+}
 
-void Game::draw(){
-    DrawTextureEx(backgroundImg, (Vector2){0.0,0.0}, 0.0f,1.0,WHITE);
-    DrawTextureEx(backgroundImg, (Vector2){(float)backgroundImg.width,0.0}, 0.0f,1.0,WHITE);
+// Random integer in [min, max]
+int Game::randomInt(int min, int max) {
+    std::uniform_int_distribution<int> dist(min, max);
+    return dist(rng);
+}
 
-    grid->draw();
+// Generate a new piece (avoids same id twice)
+std::unique_ptr<Block> Game::generateBlock() {
+    int id;
+    do {
+        id = randomInt(1, 9); // 1–7 tetrominoes, 8–9 pentominoes
+    } while (id == lastId);
 
-    drawUI();
+    lastId = id;
 
-    if(block!=nullptr){ //TODO: DrawBlocks
-        block->draw(grid->getPosition());
-        int projection_line = getProjectionLine();
-        if(projection_line!=-1) block->drawProjection(grid->getPosition(), projection_line);
+    switch (id) {
+        case 1: return std::make_unique<LBlock>();
+        case 2: return std::make_unique<JBlock>();
+        case 3: return std::make_unique<IBlock>();
+        case 4: return std::make_unique<OBlock>();
+        case 5: return std::make_unique<SBlock>();
+        case 6: return std::make_unique<TBlock>();
+        case 7: return std::make_unique<ZBlock>();
+        case 8: return std::make_unique<PBlock>();
+        case 9: return std::make_unique<UBlock>();
+        default: return std::make_unique<TBlock>();
     }
 }
 
-void Game::drawUI(){ //TODO: Automatizar os valores de score e level para eles ficarem centralizados
-    char str_score[50];
-    DrawText("TETRIS", 145, 10, 50, {255,255,255,255});
-
-    DrawText("SCORE", 455, 50, 30, {255,255,255,255});
-    DrawRectangle(400,75,200,90,colors[0]);
-    DrawText(stat.strScore().c_str(), 490, 90, 60, {255,255,255,255});
-
-    DrawText("NEXT BLOCK", 400, 180, 30, {255,255,255,255});
-    DrawRectangle(400,205,200,90,colors[0]);
-
-    DrawText("LEVEL", 455, 550, 30, {255,255,255,255});
-    DrawRectangle(400,575,200,90,colors[0]);
-    DrawText(stat.strLevel().c_str(), 490, 590, 60, {255,255,255,255});
-
-    Rectangle rec({grid->getPosition().x-4, grid->getPosition().y-4, (float) grid->getGridWidth()*grid->getSize() + 8, (float)grid->getGridHeight()*grid->getSize() + 8});
-    DrawRectangleLinesEx(rec, 4.0,{255,255,255,255});
-    //DrawText(grid->strGrid().c_str(), 900, 20, 20, {255,255,255,255});
-}
-
-unique_ptr<Block> Game::generateBlock(){
-    int position[2] = {0,grid->getGridWidth()/2};//{0,generateRandomNumber(grid_width-3)};//TODO: Talvez tirar essa geração aleatória
-    int idx = generateRandomNumber(colors.size()-2) + 1;
-    return make_unique<Block>(position, grid->getSize(), idx, colors[idx]);
-}
-
-int Game::generateRandomNumber(int limit){
-    mt19937 gerador(std::time(0));     
-    uniform_int_distribution<int> distribuicao(0, limit);
-    return distribuicao(gerador);
-}
-
-void Game::run(){
-
+// One game step
+void Game::run() {
     getMovement();
     update();
 
-    int count_lines = 0;
-    int completed_line = grid->getCompletedLine(count_lines);
-    if(completed_line!=-1) {
-        stat.update(count_lines);
-        grid->reallocateLines(completed_line);
+    int count = 0;
+    int line = grid->getCompletedLine(count);
+    if (line != -1) {
+        stat.update(count);
+        grid->reallocateLines(line);
     }
 }
 
-void Game::update(){
-    if(delayToGoDown<actualSpeed){
+// Gravity / locking
+void Game::update() {
+    if (delayToGoDown < actualSpeed) {
         delayToGoDown++;
     }
     else{
-        if(checkCollisionFloor()){
-            grid->insertBlock(getBlock());
-            swap(block, nextBlock);
+        if (checkCollisionFloor()) {
+            grid->insertBlock(*block);
+            std::swap(block, nextBlock);
             nextBlock = generateBlock();
-        }
-        else{
+        } else {
             block->moveDirection('D');
         }
-        delayToGoDown=0;
+        delayToGoDown = 0;
     }
     checkGameOver();
 }
@@ -99,68 +82,115 @@ void Game::checkGameOver(){
     }
 }
 
-void Game::getMovement(){
-    if(IsKeyDown(KEY_DOWN) && !goDown){
+// Input handling
+void Game::getMovement() {
+    if (IsKeyDown(KEY_DOWN) && !goDown) {
         actualSpeed = fastSpeed;
         goDown = true;
-    }
-    else if (IsKeyUp(KEY_DOWN) && goDown){
+    } else if (IsKeyUp(KEY_DOWN) && goDown) {
         actualSpeed = normalSpeed;
         delayToGoDown = 0;
         goDown = false;
     }
-    if(IsKeyPressed(KEY_RIGHT) && !CheckCollisionWall('R')){
+
+    if (IsKeyPressed(KEY_RIGHT) && !CheckCollisionWall('R'))
         block->moveDirection('R');
-    }
-    else if(IsKeyPressed(KEY_LEFT) && !CheckCollisionWall('L')){
+    else if (IsKeyPressed(KEY_LEFT) && !CheckCollisionWall('L'))
         block->moveDirection('L');
-    }
-    if(IsKeyPressed(KEY_UP)){
+
+    if (IsKeyPressed(KEY_UP))
         rotateBlock();
-    }
 }
 
-void Game::rotateBlock(){
+// Rotation with wall-kick + revert if invalid
+void Game::rotateBlock() {
+    int oldRot = block->getRotationState();
+    int oldRow = block->getRow();
+    int oldCol = block->getCol();
+
     block->rotate();
+
+    const int kicks[][2] = {
+        {0, 0}, {0, -1}, {0, 1}, {0, -2}, {0, 2}, {-1, 0}
+    };
+
+    for (auto& k : kicks) {
+        int r = oldRow + k[0];
+        int c = oldCol + k[1];
+
+        if (!collidesAt(*block, r, c)) {
+            block->move(r - block->getRow(), c - block->getCol());
+            return;
+        }
+    }
+
+    block->setRotationState(oldRot);
+    block->move(oldRow - block->getRow(), oldCol - block->getCol());
 }
 
-bool Game::CheckCollisionWall(char direction){
-    for(int i=0;i<block->getBlocks().size();i++){
-        int posX = block->getPosition()[0] + block->getBlocks()[i].x;
-        int posY = block->getPosition()[1] + block->getBlocks()[i].y;
-        if(direction=='R' && (posY + 1 >= grid->getGridWidth() || grid->getColorXY(posX, posY+1)!=grid->getBackgroundColor())){
+// Collision helper
+bool Game::collidesAt(const Block& b, int r, int c) const {
+    for (const auto& p : b.getBlocks()) {
+        int x = r + p.x;
+        int y = c + p.y;
+
+        if (y < 0 || y >= grid->getGridWidth()) return true;
+        if (x >= grid->getGridHeight()) return true;
+        if (x < 0) continue;
+
+        if (grid->getColorXY(x, y) != grid->getBackgroundColor())
             return true;
-        }
-        else if (direction=='L' && (posY - 1 < 0 || grid->getColorXY(posX, posY-1)!=grid->getBackgroundColor())){
+    }
+    return false;
+}
+
+// Wall collision
+bool Game::CheckCollisionWall(char dir) {
+    for (const auto& p : block->getBlocks()) {
+        int x = block->getRow() + p.x;
+        int y = block->getCol() + p.y;
+
+        if (dir == 'R' && (y + 1 >= grid->getGridWidth() ||
+            grid->getColorXY(x, y + 1) != grid->getBackgroundColor()))
             return true;
-        }
+
+        if (dir == 'L' && (y - 1 < 0 ||
+            grid->getColorXY(x, y - 1) != grid->getBackgroundColor()))
+            return true;
     }
     return false;
 }
 
-bool Game::checkCollisionFloor(){
-    for(int i=0;i<block->getBlocks().size();i++){
-        int posX = block->getPosition()[0] + block->getBlocks()[i].x;
-        int posY = block->getPosition()[1] + block->getBlocks()[i].y;
-        if(posX+1>=grid->getGridHeight() || grid->getColorXY(posX+1, posY)!=grid->getBackgroundColor()) return true;
+// Floor collision
+bool Game::checkCollisionFloor() {
+    for (const auto& p : block->getBlocks()) {
+        int x = block->getRow() + p.x;
+        int y = block->getCol() + p.y;
+
+        if (x + 1 >= grid->getGridHeight()) return true;
+        if (grid->getColorXY(x + 1, y) != grid->getBackgroundColor())
+            return true;
     }
     return false;
 }
 
-bool Game::checkCollisionFloor(int positionX){
-    for(int i=0;i<block->getBlocks().size();i++){
-        int posX = positionX + block->getBlocks()[i].x;
-        int posY = block->getPosition()[1] + block->getBlocks()[i].y;
-        if(posX+1>=grid->getGridHeight() || grid->getColorXY(posX+1, posY)!=grid->getBackgroundColor()) return true;
+// Floor collision test at given row
+bool Game::checkCollisionFloor(int testRow) {
+    for (const auto& p : block->getBlocks()) {
+        int x = testRow + p.x;
+        int y = block->getCol() + p.y;
+
+        if (x + 1 >= grid->getGridHeight()) return true;
+        if (grid->getColorXY(x + 1, y) != grid->getBackgroundColor())
+            return true;
     }
     return false;
 }
 
-int Game::getProjectionLine(){
-    for(int i=block->getPosition()[0];i<grid->getGridHeight();i++){
-        if(checkCollisionFloor(i)){
-            return i;
-        }
+// Ghost projection
+int Game::getProjectionLine() {
+    for (int r = block->getRow(); r < grid->getGridHeight(); r++) {
+        if (checkCollisionFloor(r)) return r;
     }
     return -1;
 }
@@ -172,3 +202,8 @@ Block Game::getBlock(){
 bool Game::getGameOver(){
     return gameOver;
 }
+// Getters
+const Grid& Game::getGrid() const { return *grid; }
+const Block& Game::getCurrentBlock() const { return *block; }
+const Block& Game::getNextBlock() const { return *nextBlock; }
+const Stat& Game::getStats() const { return stat; }

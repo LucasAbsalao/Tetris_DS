@@ -1,4 +1,2 @@
-#include"position.hpp"
-
-Position::Position(int x, int y): x(x), y(y) 
-{}
+#include "position.hpp"
+// Empty: constructor is inline in header

@@ -1,8 +1,9 @@
 #pragma once
 
-class Position{
-    public:
-        Position(int x, int y);
-        int x;
-        int y;
+struct Position {
+    int x = 0;
+    int y = 0;
+
+    Position() = default;              // needed for arrays/vectors default init
+    Position(int x, int y) : x(x), y(y) {}
 };

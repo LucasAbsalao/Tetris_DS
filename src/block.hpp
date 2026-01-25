@@ -1,46 +1,45 @@
 #pragma once
 
-#include<raylib.h>
-#include<vector>
-#include<array>
-#include<map>
-#include<ostream>
-
+#include <vector>
 #include "position.hpp"
 
-using namespace std; 
+// Polymorphic base class for all pieces (tetrominoes / pentominoes)
+class Block {
+protected:
+    int row = 0;               // anchor row in the grid
+    int col = 0;               // anchor column in the grid
+    int rotationState = 0;     // current rotation index
+    int id = 0;                // piece id (also used as colorId)
 
-class Block{
-    private:
-        array<int,2> position;
-        map<int, vector<Position>> blocks;
-        int size;
-        Color color;
-        int idx_color; //TODO
-        int id;
-        int rotationState;
+    // Each rotation is a list of local cell positions (size 4 or 5)
+    std::vector<std::vector<Position>> rotations;
 
-    public:
-        Block(int position[2], int size, int idx_color, Color color);
-        void moveDirection(char direction);
-        void move(int x, int y); //Colocar como private
-        void draw(Vector2 offset);
-        void drawProjection(Vector2 offset, int line);
-        void rotate();
-        template<class charT, class charTraits>
-        friend basic_ostream<charT,charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block);
-        array<int,2> getPosition() const;
-        vector<Position> getBlocks() const;
-        int getColor() const;
-        int *GetBoundary() const;
-};
+public:
+    virtual ~Block() = default;
 
-template<class charT, class charTraits>
-basic_ostream<charT, charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block){
-    aStream << block.getPosition()[0] << ", " << block.getPosition()[1] << ": {";
-    for(int i=0;i<4;i++){
-        aStream << "(" << block.blocks.at(block.rotationState)[i].x << ", " << block.blocks.at(block.rotationState)[i].y << ") ";
+    // Returns local cells of current rotation
+    const std::vector<Position>& getCells() const {
+        return rotations[rotationState];
     }
-    aStream << "}";
-    return aStream;
-}
+
+    // Rotate to next rotation
+    virtual void rotate();
+
+    // Move anchor
+    void move(int dRow, int dCol);
+    void moveDirection(char direction);
+
+    // Rotation helpers
+    int getRotationState() const noexcept { return rotationState; }
+    void setRotationState(int s);
+
+    // Getters
+    int getId() const noexcept { return id; }
+    int getRow() const noexcept { return row; }
+    int getCol() const noexcept { return col; }
+
+    // Convenience: returns current rotation cells
+    std::vector<Position> getBlocks() const {
+        return getCells();
+    }
+};
