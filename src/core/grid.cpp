@@ -50,7 +50,7 @@ void Grid::setGrid(int x, int y, int idx_color){
         if(idx_color!=backgroundColor && grid[x][y]==backgroundColor) check_how_many_blocks[x]++;
         if(idx_color==backgroundColor && grid[x][y]!=backgroundColor) check_how_many_blocks[x]--;
         grid[x][y] = idx_color;
-    }//TODO: Exception
+    }
 }
 
 // Returns the color ID stored at (x, y)

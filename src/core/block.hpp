@@ -2,8 +2,8 @@
 
 #include <vector>
 #include<ostream>
-#include "position.hpp"
-#include"network/networkStructures.hpp"
+#include "../util/position.hpp"
+#include"../network/networkStructures.hpp"
 
 // Polymorphic base class for all pieces (tetrominoes / pentominoes)
 class Block {
@@ -51,6 +51,7 @@ class Block {
         //Packet to Network
         BlockPacket toPacket(int id) const;
 
+        //Fluc Operator
         template<class charT, class charTraits>
         friend std::basic_ostream<charT,charTraits>& operator <<(std::basic_ostream<charT, charTraits>& aStream, const Block& block);
 };

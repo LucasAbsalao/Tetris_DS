@@ -5,5 +5,5 @@ struct Position {
     int y = 0;
 
     Position() = default;              // needed for arrays/vectors default init
-    Position(int x, int y) : x(x), y(y) {}
+    Position(int x, int y);
 };

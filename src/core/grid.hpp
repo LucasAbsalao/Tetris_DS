@@ -5,7 +5,7 @@
 #include <raylib.h> 
 #include <cstring>
 
-#include "colors.hpp"
+#include "../util/colors.hpp"
 #include "block.hpp"
 
 // Represents the Tetris board as a matrix of color IDs

@@ -9,14 +9,6 @@ NetworkManager::~NetworkManager(){
     stopThread();
 
     std::cout << "\n\n----------------------- Deleting the client -----------------------\n";
-    for(auto const& x:client_map){
-        std::cout << "Deleting the client " << x.second << "\n";
-        delete x.second;
-    }
-
-    client_map.clear();
-
-    std::cout<< "All clients deleted\n" << "Asking for disconnection to the server\n";
 
     if(client!=nullptr && peer != nullptr){
         enet_peer_disconnect(peer, 0);
@@ -52,7 +44,7 @@ void NetworkManager::initClient(int port){
                               2,
                               0,
                               0);
-    if(client == NULL){ //TODO: Exception
+    if(client == NULL){
         throw EnetException("Could not create an Enet Host.");
     }
 }
@@ -68,7 +60,7 @@ void NetworkManager::connectToServer(const char *ip_address, int port){
 
     
     peer = enet_host_connect(client, &address, 2, 0); // Connecting to Host with 2 channels (a reliable one to grid and stats | an unreliable to block)
-    if(peer==NULL){ //TODO: Exception
+    if(peer==NULL){
         throw EnetException("No available peers for initiating an ENet connection\n");
     }
 
@@ -86,6 +78,8 @@ void NetworkManager::connectToServer(const char *ip_address, int port){
     } else {
         throw EnetException("Fail in the enet_host_service function.\n");
     }
+
+    //Starting Thread
     startThread();
 }
 

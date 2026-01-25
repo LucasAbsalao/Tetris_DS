@@ -7,13 +7,13 @@
 #include <cmath>
 
 
-#include "game.hpp"
-#include "block.hpp"
-#include "grid.hpp"
-#include "stats.hpp"
-#include "matchManager.hpp"
-#include "colors.hpp"
-#include "tetrominoes.hpp"
+#include "../core/game.hpp"
+#include "../core/block.hpp"
+#include "../core/grid.hpp"
+#include "../core/stats.hpp"
+#include "../core/tetrominoes.hpp"
+#include "../network/matchManager.hpp"
+#include "../util/colors.hpp"
 
 // App screens
 enum class AppState {

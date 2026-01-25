@@ -8,9 +8,9 @@
 #include<cstring>
 #include<map>
 
-#include"../../src/network/clientData.hpp"
-#include"../../src/network/networkExceptions.hpp"
-#include"../../src/network/networkStructures.hpp"
+#include"../src/network/clientData.hpp"
+#include"../src/network/networkExceptions.hpp"
+#include"../src/network/networkStructures.hpp"
 
 class Server{
     private:

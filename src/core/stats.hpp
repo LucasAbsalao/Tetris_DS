@@ -4,7 +4,7 @@
 #include <array>
 #include <vector>
 
-#include"network/networkStructures.hpp"
+#include"../network/networkStructures.hpp"
 
 // Stores and updates game statistics (score, level, usage)
 class Stat {

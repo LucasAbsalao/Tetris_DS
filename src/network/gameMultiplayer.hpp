@@ -1,8 +1,8 @@
 #pragma once
 
-#include "game.hpp"
+#include "../core/game.hpp"
 #include "networkManager.hpp"
-#include"network/networkStructures.hpp"
+#include"networkStructures.hpp"
 #include<string>
 
 class GameMultiplayer : public Game {
