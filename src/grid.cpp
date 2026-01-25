@@ -8,7 +8,7 @@ Grid::Grid(int grid_width, int grid_height, int size, Vector2 position)
       colors(Colors::getColors()),
       position(position),
       backgroundColor(0),
-      grid(grid_height, vector<int>(grid_width, 0)),
+      grid(grid_height, std::vector<int>(grid_width, 0)),
       check_how_many_blocks(grid_height, 0)
 {}
 
@@ -20,7 +20,7 @@ Grid::Grid(int grid_width, int grid_height, int size, Vector2 position, int back
       backgroundColor(backgroundColor),
       colors(Colors::getColors()),
       position(position),
-      grid(grid_height, vector<int>(grid_width, backgroundColor)),
+      grid(grid_height, std::vector<int>(grid_width, backgroundColor)),
       check_how_many_blocks(grid_height, 0)
 {}
 
@@ -39,7 +39,7 @@ bool Grid::isThereABlockInTheLine(int line){
         if(grid[line][i]!=0){
             return true;
         }
-    }
+    } 
     return false;
 }
 
@@ -55,13 +55,12 @@ void Grid::insertBlock(const Block& block) {
 }
 
 // Sets one grid cell to a given color ID
-void Grid::setGrid(int x, int y, int idx_color) {
-    if (x >= 0 && x < grid_height && y >= 0 && y < grid_width) {
+void Grid::setGrid(int x, int y, int idx_color){
+    if(x >= 0 && x < grid_height && y >= 0 && y < grid_width){
+        if(idx_color!=backgroundColor && grid[x][y]==backgroundColor) check_how_many_blocks[x]++;
+        if(idx_color==backgroundColor && grid[x][y]!=backgroundColor) check_how_many_blocks[x]--;
         grid[x][y] = idx_color;
-
-        // Tracks how many filled cells exist in each row
-        if (idx_color != backgroundColor) check_how_many_blocks[x]++;
-    }
+    }//TODO: Exception
 }
 
 // Returns the color ID stored at (x, y)
@@ -89,11 +88,12 @@ int Grid::getCompletedLine(int& count) {
 // Shifts lines down after a line clear
 void Grid::reallocateLines(int line) {
     int temp_line = line;
-
-    for (int i = line - 1; i >= 0; i--) {
-        if (check_how_many_blocks[i] != 0) {
-            for (int j = 0; j < grid_width; j++) {
-                setGrid(temp_line, j, grid[i][j]);
+    bool line_moving = false;
+    for(int i=line-1;i>=0;i--){
+        if(check_how_many_blocks[i]!=0 || line_moving==true){
+            line_moving = true;
+            for(int j=0;j<grid_width;j++){
+                setGrid(temp_line,j,grid[i][j]);
             }
             resetLine(i);
             temp_line--;
@@ -109,18 +109,52 @@ void Grid::resetLine(int idx_line) {
     check_how_many_blocks[idx_line] = 0;
 }
 
-// Builds a debug string for printing the grid
-string Grid::strGrid() const {
-    string str_grid;
+void Grid::receiveAttack(int hole){
+    for(int i=0;i<grid_height-1;i++){
+        resetLine(i);
+        for(int j=0;j<grid_width;j++){
+            setGrid(i, j, grid[i+1][j]);
+        }
+    }
 
-    for (int i = 0; i < grid_height; i++) {
-        str_grid += to_string(check_how_many_blocks[i]) + ": ";
-        for (int j = 0; j < grid_width; j++) {
-            str_grid += to_string(grid[i][j]) + " ";
+    for(int j = 0;j < grid_width; j++){
+        if(j!=hole){
+            setGrid(grid_height-1, j, 15);
+        }
+        else{
+            setGrid(grid_height-1, j, backgroundColor);
+        }
+    }
+}
+
+std::string Grid::strGrid() const{ //TODO: operator string
+    std::string str_grid;
+    for (int i=0;i<grid_height;i++){
+        str_grid += std::to_string(check_how_many_blocks[i]) + ": ";
+        for(int j=0;j<grid_width;j++){
+            str_grid += std::to_string(grid[i][j]) + " ";
         }
         str_grid += '\n';
     }
     return str_grid;
+}
+
+GridPacket Grid::toPacket(int id){
+    GridPacket packet;
+    packet.type = MessageType::GRID;
+    packet.id = id;
+    packet.lines = static_cast<uint8_t>(grid_height);
+    packet.columns = static_cast<uint8_t>(grid_width);
+
+    std::memset(packet.grid, 0, sizeof(packet.grid));
+
+    for(int i=0;i<grid_height;i++){
+        for(int j=0;j<grid_width;j++){
+            packet.grid[i][j] = static_cast<uint8_t>(grid[i][j]);
+        }
+    }
+
+    return packet;
 }
 
 

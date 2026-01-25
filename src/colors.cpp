@@ -1,9 +1,9 @@
 #include "colors.hpp"
 
 // Returns the color palette used by the game
-vector<Color> Colors::getColors() {
+std::vector<Color> Colors::getColors() {
     // Color list indexed by color ID
-    vector<Color> c = {
+    std::vector<Color> c = {
         MY_BLACK,     // background / empty cell
         DARKGRAY,
         MAROON,

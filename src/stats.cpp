@@ -55,6 +55,15 @@ int Stat::getScore() const {
     return score;
 }
 
+StatPacket Stat::toPacket(int id){
+    StatPacket packet;
+    packet.type = MessageType::STATS;
+    packet.id = id;
+    packet.level = static_cast<uint8_t>(level);
+    packet.score = static_cast<uint32_t>(score);
+    return packet;
+}
+
 // Returns the current level
 int Stat::getLevel() const {
     return level;
@@ -73,4 +82,12 @@ std::string Stat::strScore() const {
 // Returns the level as a string (for display)
 std::string Stat::strLevel() const {
     return std::to_string(level);
+}
+
+void Stat::setScore(int score){
+    this->score = score;
+}
+
+void Stat::setLevel(int level){
+    this->level = level;
 }

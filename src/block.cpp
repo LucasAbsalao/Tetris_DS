@@ -31,3 +31,28 @@ void Block::moveDirection(char direction) {
         case 'R': col++; break;
     }
 }
+
+void Block::setPosition(int x, int y){
+    row = x;
+    col = y;
+}
+
+BlockPacket Block::toPacket(int id){
+    BlockPacket packet;
+    packet.type = MessageType::BLOCK;
+    packet.id = id;
+    packet.id_block = static_cast<uint8_t>(id);
+    packet.rotation = static_cast<uint8_t>(rotationState);
+    packet.x = static_cast<uint8_t>(row);
+    packet.y = static_cast<uint8_t>(col);
+    return packet;
+}
+
+// void Block::drawProjection(Vector2 offset, int line){
+//     for(int i=0;i<blocks.at(rotationState).size();i++){
+//         int posY = blocks.at(rotationState)[i].x + line;
+//         int posX = blocks.at(rotationState)[i].y + position[1];
+//         DrawRectangleLines(offset.x + size*posX, offset.y + size*posY, size, size, color);
+//     }
+// }
+

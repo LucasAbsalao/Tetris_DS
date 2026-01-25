@@ -1,9 +1,6 @@
 # Copyright (c) 2020-present Caps Collective & contributors
 # Originally authored by Jonathan Moallem (@jonjondev) & Aryeh Zinn (@Raelr)
-#
-# This code is released under an unmodified zlib license.
-# For conditions of distribution and use, please see:
-#     https://opensource.org/licenses/Zlib
+# Modified for Incremental Build
 
 # Define custom functions
 rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
@@ -21,44 +18,44 @@ linkFlags = -L lib/$(platform) -l raylib
 
 # Check for Windows
 ifeq ($(OS), Windows_NT)
-	# Set Windows macros
-	platform := Windows
-	CXX ?= g++
-	linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -static -static-libgcc -static-libstdc++
-	THEN := &&
-	PATHSEP := \$(BLANK)
-	MKDIR := -mkdir -p
-	RM := -del /q
-	COPY = -robocopy "$(call platformpth,$1)" "$(call platformpth,$2)" $3
+    # Set Windows macros
+    platform := Windows
+    CXX ?= g++
+    linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -static -static-libgcc -static-libstdc++
+    THEN := &&
+    PATHSEP := \$(BLANK)
+    MKDIR := -mkdir -p
+    RM := -del /q
+    COPY = -robocopy "$(call platformpth,$1)" "$(call platformpth,$2)" $3
 else
-	# Check for MacOS/Linux
-	UNAMEOS := $(shell uname)
-	ifeq ($(UNAMEOS), Linux)
-		# Set Linux macros
-		platform := Linux
-		CXX ?= g++
-		linkFlags += -l GL -l m -l pthread -l dl -l rt -l X11
-	endif
-	ifeq ($(UNAMEOS), Darwin)
-		# Set macOS macros
-		platform := macOS
-		CXX ?= clang++
-		linkFlags += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
-	endif
+    # Check for MacOS/Linux
+    UNAMEOS := $(shell uname)
+    ifeq ($(UNAMEOS), Linux)
+        # Set Linux macros
+        platform := Linux
+        CXX ?= g++
+        linkFlags += -lenet -l GL -l m -l pthread -l dl -l rt -l X11
+    endif
+    ifeq ($(UNAMEOS), Darwin)
+        # Set macOS macros
+        platform := macOS
+        CXX ?= clang++
+        linkFlags += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+    endif
 
-	# Set UNIX macros
-	THEN := ;
-	PATHSEP := /
-	MKDIR := mkdir -p
-	RM := rm -rf
-	COPY = cp $1$(PATHSEP)$3 $2
+    # Set UNIX macros
+    THEN := ;
+    PATHSEP := /
+    MKDIR := mkdir -p
+    RM := rm -rf
+    COPY = cp $1$(PATHSEP)$3 $2
 endif
 
 # Lists phony targets for Makefile
-.PHONY: all setup submodules execute clean
+.PHONY: all setup submodules execute clean run
 
-# Default target, compiles, executes and cleans
-all: $(target) execute clean
+# Default target
+all: $(target)
 
 # Sets up the project for compiling, generates includes and libs
 setup: include lib
@@ -93,8 +90,11 @@ $(buildDir)/%.o: src/%.cpp Makefile
 	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS)
 
 # Run the executable
-execute:
+execute: $(target)
 	$(target) $(ARGS)
+
+# run the makefile
+run: execute
 
 # Clean up all relevant files
 clean:

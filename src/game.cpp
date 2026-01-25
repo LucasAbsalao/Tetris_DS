@@ -1,5 +1,4 @@
 #include "game.hpp"
-
 // Constructor
 Game::Game(int normalSpeed, int fastSpeed)
     : grid(std::make_unique<Grid>(10, 24, 25, (Vector2){125, 65}, 0)),
@@ -9,12 +8,43 @@ Game::Game(int normalSpeed, int fastSpeed)
       actualSpeed(normalSpeed),
       goDown(false),
       delayToGoDown(0),
+      position_x(125),
+      position_y(65),
+      gameOver(false),
       rng(std::random_device{}()),
       lastId(-1)
 {
     block = generateBlock();
     nextBlock = generateBlock();
 }
+
+Game::Game(int normalSpeed, int fastSpeed, float position_x, float position_y):     grid(std::make_unique<Grid>(10,24,25,(Vector2){position_x,position_y},0)), 
+                                                                                    block(generateBlock()), 
+                                                                                    nextBlock(generateBlock()),
+                                                                                    stat(Stat()),
+                                                                                    position_x(position_x),
+                                                                                    position_y(position_y),
+                                                                                    normalSpeed(normalSpeed),
+                                                                                    fastSpeed(fastSpeed),
+                                                                                    actualSpeed(normalSpeed),
+                                                                                    goDown(false),
+                                                                                    delayToGoDown(0),
+                                                                                    gameOver(false)
+{}
+
+Game::Game(int normalSpeed, int fastSpeed, float position_x, float position_y):     grid(std::make_unique<Grid>(10,24,25,(Vector2){position_x,position_y},0)), 
+                                                                                    block(generateBlock()), 
+                                                                                    nextBlock(generateBlock()),
+                                                                                    stat(Stat()),
+                                                                                    position_x(position_x),
+                                                                                    position_y(position_y),
+                                                                                    normalSpeed(normalSpeed),
+                                                                                    fastSpeed(fastSpeed),
+                                                                                    actualSpeed(normalSpeed),
+                                                                                    goDown(false),
+                                                                                    delayToGoDown(0),
+                                                                                    gameOver(false)
+{}
 
 // Random integer in [min, max]
 int Game::randomInt(int min, int max) {
@@ -45,46 +75,75 @@ std::unique_ptr<Block> Game::generateBlock() {
     }
 }
 
-// One game step
-void Game::run() {
-    getMovement();
-    update();
-
-    int count = 0;
-    int line = grid->getCompletedLine(count);
-    if (line != -1) {
-        stat.update(count);
-        grid->reallocateLines(line);
+// Generate a new piece (avoids same id twice)
+std::unique_ptr<Block> Game::generateSpecificBlock(int id) {
+    switch (id) {
+        case 1: return std::make_unique<LBlock>();
+        case 2: return std::make_unique<JBlock>();
+        case 3: return std::make_unique<IBlock>();
+        case 4: return std::make_unique<OBlock>();
+        case 5: return std::make_unique<SBlock>();
+        case 6: return std::make_unique<TBlock>();
+        case 7: return std::make_unique<ZBlock>();
+        case 8: return std::make_unique<PBlock>();
+        case 9: return std::make_unique<UBlock>();
+        default: return std::make_unique<TBlock>();
     }
 }
 
-// Gravity / locking
-void Game::update() {
-    if (delayToGoDown < actualSpeed) {
+// One game step
+void Game::run(){
+    if(!gameOver){
+        getMovement();
+
+        update();
+
+        int count_lines = 0;
+        int completed_line = grid->getCompletedLine(count_lines);
+        if(completed_line!=-1)
+            updateGridStat(count_lines, completed_line);
+    }
+}
+
+void Game::updateGridStat(int count_lines, int completed_line){
+    stat.update(count_lines);
+    grid->reallocateLines(completed_line);
+}
+
+void Game::update(){
+    if(delayToGoDown<actualSpeed){
         delayToGoDown++;
     }
     else{
-        if (checkCollisionFloor()) {
-            grid->insertBlock(*block);
-            std::swap(block, nextBlock);
-            nextBlock = generateBlock();
-        } else {
-            block->moveDirection('D');
+        if(checkCollisionFloor()){
+            insertBlockInGrid();
+        }
+        else{
+            moveBlock('D');
         }
         delayToGoDown = 0;
     }
     checkGameOver();
 }
 
+void Game::insertBlockInGrid(){
+    grid->insertBlock(*block);
+    std::swap(block, nextBlock);
+    nextBlock = generateBlock();
+}
+
 void Game::checkGameOver(){
     if(grid->isThereABlockInTheLine(0)){
-        gameOver = true;
+        setGameOver();
     }
 }
 
-// Input handling
-void Game::getMovement() {
-    if (IsKeyDown(KEY_DOWN) && !goDown) {
+void Game::setGameOver(){
+    this->gameOver = true;
+}
+
+void Game::getMovement(){
+    if(IsKeyDown(KEY_DOWN) && !goDown){
         actualSpeed = fastSpeed;
         goDown = true;
     } else if (IsKeyUp(KEY_DOWN) && goDown) {
@@ -92,14 +151,15 @@ void Game::getMovement() {
         delayToGoDown = 0;
         goDown = false;
     }
-
-    if (IsKeyPressed(KEY_RIGHT) && !CheckCollisionWall('R'))
-        block->moveDirection('R');
-    else if (IsKeyPressed(KEY_LEFT) && !CheckCollisionWall('L'))
-        block->moveDirection('L');
-
-    if (IsKeyPressed(KEY_UP))
+    if(IsKeyPressed(KEY_RIGHT) && !CheckCollisionWall('R')){
+        moveBlock('R');
+    }
+    else if(IsKeyPressed(KEY_LEFT) && !CheckCollisionWall('L')){
+        moveBlock('L');
+    }
+    if(IsKeyPressed(KEY_UP)){
         rotateBlock();
+    }
 }
 
 // Rotation with wall-kick + revert if invalid
@@ -142,6 +202,10 @@ bool Game::collidesAt(const Block& b, int r, int c) const {
             return true;
     }
     return false;
+}
+
+void Game::moveBlock(char direction){
+    block->moveDirection(direction);
 }
 
 // Wall collision
@@ -195,8 +259,11 @@ int Game::getProjectionLine() {
     return -1;
 }
 
-Block Game::getBlock(){
-    return *block;
+void Game::receiveAttack(int lines){
+    for(int i=0; i<lines;i++){
+        int hole = generateRandomNumber(grid->getGridWidth());
+        grid->receiveAttack(hole);
+    }
 }
 
 bool Game::getGameOver(){
@@ -207,3 +274,30 @@ const Grid& Game::getGrid() const { return *grid; }
 const Block& Game::getCurrentBlock() const { return *block; }
 const Block& Game::getNextBlock() const { return *nextBlock; }
 const Stat& Game::getStats() const { return stat; }
+
+
+Grid& Game::getGridRef(){
+    return *grid;
+}
+
+Stat& Game::getStatRef(){
+    return stat;
+}
+
+Block& Game::getBlockRef(){
+    return *block;
+}
+
+Block* Game::getCurrentBlockPtr() {
+    return block.get(); // return the pointer
+}
+
+Block& Game::getNextBlockRef(){
+    return *nextBlock;
+}
+
+void Game::spawnBlock(int x, int y, int id, int rotationState){
+    int position[2] = {x, y};
+    this->block = generateSpecificBlock(id);
+    (this->block)->setRotationState(rotationState);
+}
