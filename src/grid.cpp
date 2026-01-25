@@ -24,16 +24,6 @@ Grid::Grid(int grid_width, int grid_height, int size, Vector2 position, int back
       check_how_many_blocks(grid_height, 0)
 {}
 
-// Draws each cell using its color ID
-void Grid::draw() const {
-    for (int i = 0; i < grid_height; i++) {
-        for (int j = 0; j < grid_width; j++) {
-            DrawRectangle(position.x + size * j, position.y + size * i, size, size, colors[grid[i][j]]);
-            DrawRectangleLines(position.x + size * j, position.y + size * i, size, size, colors[1]);
-        }
-    }
-}
-
 bool Grid::isThereABlockInTheLine(int line){
     for(int i=0;i<grid_width;i++){
         if(grid[line][i]!=0){
@@ -139,7 +129,7 @@ std::string Grid::strGrid() const{ //TODO: operator string
     return str_grid;
 }
 
-GridPacket Grid::toPacket(int id){
+GridPacket Grid::toPacket(int id) const{
     GridPacket packet;
     packet.type = MessageType::GRID;
     packet.id = id;

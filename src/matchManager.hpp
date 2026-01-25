@@ -17,7 +17,7 @@ class MatchManager {
         GameRemote *player2;
 
     public:
-        MatchManager(int normalSpeed, int fast_speed, Texture2D background, const std::string& address, int port_host);
+        MatchManager(int normalSpeed, int fast_speed, const std::string& address, int port_host);
         ~MatchManager();
         bool allPlayersAreReady();
         void handlePacket();
@@ -28,4 +28,6 @@ class MatchManager {
         void setLocalPlayerName(const std::string& name);
         void draw();
         void run();
+        const GameMultiplayer& getPlayer1() const;
+        GameRemote* getPlayer2() const;
 };

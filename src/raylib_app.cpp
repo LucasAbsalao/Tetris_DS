@@ -10,33 +10,36 @@ static Rectangle CenterRect(float cx, float cy, float w, float h) {
     return Rectangle{cx - w * 0.5f, cy - h * 0.5f, w, h};
 }
 
-RaylibApp::RaylibApp(int screenW, int screenH, int normalSpeed, int fastSpeed)
+RaylibApp::RaylibApp(int screenW, int screenH, int normalSpeed, int fastSpeed, std::string serverAddress, int port)
     : screenWidth(screenW),
       screenHeight(screenH),
       state(AppState::StartScreen),
       background({0}),
       uiFont({0}),
       startButton({0}),
+      multiplayerButton({0}),
       instructionsButton({0}),
       exitButton({0}),
       startTime(0.0f),
-      game(normalSpeed, fastSpeed)
+      framesCounter(0),
+      letterCount(0),
+      name("\0"),
+      game(normalSpeed, fastSpeed),
+      match(normalSpeed, fastSpeed, serverAddress, port)
 {
     InitWindow(screenWidth, screenHeight, "Tetris");
     SetTargetFPS(60);
 
     background = LoadTexture("assets/background.jpeg");
 
-    // If you don't have a ttf yet, you can comment this and use default font.
-    // uiFont = LoadFontEx("assets/ui.ttf", 96, nullptr, 0);
+    
     uiFont = GetFontDefault();
 
     buildDemoPieces();
 }
 
 RaylibApp::~RaylibApp() {
-    // Only unload if you used LoadFontEx. If using default font, unloading is not needed.
-    // UnloadFont(uiFont);
+
     UnloadTexture(background);
     CloseWindow();
 }
@@ -59,6 +62,11 @@ void RaylibApp::processInput() {
     if (state == AppState::StartScreen) {
         if (click) {
             if (CheckCollisionPointRec(mouse, startButton)) state = AppState::Playing;
+            else if (CheckCollisionPointRec(mouse, multiplayerButton)) {
+                state = AppState::InputUsername;
+                letterCount = 0;
+                name[0] = '\0';
+            }
             else if (CheckCollisionPointRec(mouse, instructionsButton)) state = AppState::Instructions;
             else if (CheckCollisionPointRec(mouse, exitButton)) state = AppState::Exiting;
         }
@@ -66,12 +74,64 @@ void RaylibApp::processInput() {
         if (IsKeyPressed(KEY_I)) state = AppState::Instructions;
         if (IsKeyPressed(KEY_ESCAPE)) state = AppState::Exiting;
     }
+    else if (state == AppState::InputUsername) {
+        // Typing Username
+        int key = GetCharPressed();
+
+        // A lot of characters in a frame
+        while (key > 0) {
+            if ((key >= 32) && (key <= 125) && (letterCount < MAX_INPUT_CHARS)) {
+                name[letterCount] = (char)key;
+                name[letterCount + 1] = '\0';
+                letterCount++;
+            }
+            key = GetCharPressed();
+        }
+
+        if (IsKeyPressed(KEY_BACKSPACE)) {
+            letterCount--;
+            if (letterCount < 0) letterCount = 0;
+            name[letterCount] = '\0';
+        }
+
+        // Cancel e return to menu
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            state = AppState::StartScreen;
+        }
+
+        // Confirm and connect
+        if (IsKeyPressed(KEY_ENTER) && letterCount > 0) {
+            try {
+                // Connects to web
+                match.init(); 
+                match.setLocalPlayerName(std::string(name));
+                
+                // Go to multiplayer
+                state = AppState::Multiplayer; 
+            }
+            catch (const ServerConnectionException& e) {
+                std::cerr << "[Attention] " << e.what() << "\n";
+                state = AppState::StartScreen; 
+            }
+            catch (const EnetException& e) {
+                std::cerr << "[NetworkError] " << e.what() << "\n";
+                state = AppState::Exiting;
+            }
+            catch (const std::exception& e) {
+                std::cerr << "[CRASH] " << e.what() << "\n";
+                state = AppState::Exiting;
+            }
+        }
+    }
     else if (state == AppState::Instructions) {
         if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE)) {
             state = AppState::StartScreen;
         }
     }
-    // Gameplay input stays inside Game::getMovement() (your choice)
+    else if(state == AppState::Multiplayer){
+        if(IsKeyPressed(KEY_ENTER)) match.readyToStart();
+    }
+            
 }
 
 void RaylibApp::update() {
@@ -79,27 +139,52 @@ void RaylibApp::update() {
     if (state == AppState::StartScreen) {
         startTime += GetFrameTime();
     }
-
+    if (state == AppState::InputUsername) {
+        framesCounter++;
+    }
     if (state == AppState::Playing) {
         game.run();
+    }
+    else if (state == AppState::Multiplayer) {
+        match.run(); 
     }
 }
 
 void RaylibApp::draw() {
-    if (state == AppState::Playing) drawGameplay();
+    if (state == AppState::Playing) {
+        drawGameplayBackground();
+        drawGameplay(game.getGrid(), game.getCurrentBlock(), game.getStats(), game.getProjectionLine());
+    }
+    else if (state == AppState::Multiplayer) {
+        drawGameplayBackground();
+        //Draw local player
+        drawGameplay(match.getPlayer1().getGrid(), 
+                    match.getPlayer1().getCurrentBlock(), 
+                    match.getPlayer1().getStats(), 
+                    match.getPlayer1().getProjectionLine());
+
+        // Draw remote player
+        if (match.getPlayer2() != nullptr) {
+            drawGameplay(match.getPlayer2()->getGrid(), 
+                        match.getPlayer2()->getCurrentBlock(), 
+                        match.getPlayer2()->getStats(), 
+                        -1); // Geralmente não desenhamos o ghost do oponente
+        }
+    }
+    else if (state == AppState::InputUsername) drawInputUsername();
     else drawStartScreen();
 }
 
-void RaylibApp::drawGameplay() {
+void RaylibApp::drawGameplayBackground(){
     ClearBackground(RAYWHITE);
 
     DrawTextureEx(background, (Vector2){0.0f, 0.0f}, 0.0f, 1.0f, WHITE);
     DrawTextureEx(background, (Vector2){(float)background.width, 0.0f}, 0.0f, 1.0f, WHITE);
+}
 
-    const Grid& g = game.getGrid();
-    const Block& b = game.getCurrentBlock();
-
-    g.draw();
+void RaylibApp::drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow) {
+    // Draw the grid
+    drawGrid(g);
 
     const auto palette = Colors::getColors();
     Color fill = palette[b.getId()];
@@ -107,25 +192,74 @@ void RaylibApp::drawGameplay() {
     // Draw current piece
     drawBlockCells(b, g, b.getRow(), b.getCol(), fill, false);
 
-    // Draw ghost
-    int projRow = game.getProjectionLine();
-    if (projRow != -1) drawBlockCells(b, g, projRow, b.getCol(), fill, true);
+    // Draw ghost piece (apenas se houver projeção)
+    if (projRow != -1) {
+        drawBlockCells(b, g, projRow, b.getCol(), fill, true);
+    }
 
-    drawHUD();
+    // Passamos o Stat para o HUD também ser genérico
+    drawHUD(g.getPosition(), st);
 }
 
-void RaylibApp::drawHUD() {
-    const Stat& st = game.getStats();
+void RaylibApp::drawInputUsername() {
+    ClearBackground(BLACK);
 
-    DrawText("TETRIS", 145, 10, 50, WHITE);
+    // Draw background (consistent with the Start Screen)
+    DrawTextureEx(background, (Vector2){0.0f, 0.0f}, 0.0f, 1.0f, WHITE);
+    DrawTextureEx(background, (Vector2){(float)background.width, 0.0f}, 0.0f, 1.0f, WHITE);
+    DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.5f));
 
-    DrawText("SCORE", 455, 50, 30, WHITE);
-    DrawRectangle(400, 75, 200, 90, Fade(BLACK, 0.35f));
-    DrawText(st.strScore().c_str(), 490, 90, 60, WHITE);
+    // Central Panel
+    float panelW = 500.0f;
+    float panelH = 250.0f;
+    Rectangle panel = CenterRect(screenWidth * 0.5f, screenHeight * 0.5f, panelW, panelH);
 
-    DrawText("LEVEL", 455, 550, 30, WHITE);
-    DrawRectangle(400, 575, 200, 90, Fade(BLACK, 0.35f));
-    DrawText(st.strLevel().c_str(), 490, 590, 60, WHITE);
+    DrawRectangleRounded(panel, 0.1f, 10, Fade(RAYWHITE, 0.95f));
+    DrawRectangleRoundedLines(panel, 0.1f, 10, DARKBLUE);
+
+    // Title
+    const char* text = "ENTER YOUR USERNAME";
+    Vector2 textSize = MeasureTextEx(uiFont, text, 30, 2);
+    DrawTextEx(uiFont, text, 
+               (Vector2){panel.x + panelW/2 - textSize.x/2, panel.y + 30}, 
+               30, 2, DARKBLUE);
+
+    // Input Box (Text Field)
+    Rectangle inputBox = {panel.x + 50, panel.y + 100, panelW - 100, 50};
+    DrawRectangleRec(inputBox, LIGHTGRAY);
+    DrawRectangleLinesEx(inputBox, 2, DARKGRAY);
+
+    // Render the typed username
+    Vector2 nameSize = MeasureTextEx(uiFont, name, 40, 2);
+    // Align text to the left inside the box with padding
+    DrawTextEx(uiFont, name, (Vector2){inputBox.x + 10, inputBox.y + 5}, 40, 2, MAROON);
+
+    // Blinking Cursor (Pipe |)
+    if (letterCount < MAX_INPUT_CHARS) {
+        // Blink every 30 frames (approx. 0.5 seconds at 60 FPS)
+        if (((framesCounter / 30) % 2) == 0) {
+            DrawText("|", (int)inputBox.x + 10 + (int)nameSize.x, (int)inputBox.y + 5, 40, MAROON);
+        }
+    }
+
+    // Footer Instructions (Subtitle)
+    const char* sub = "Press ENTER to Connect or ESC to Cancel";
+    Vector2 subSize = MeasureTextEx(uiFont, sub, 20, 1);
+    DrawTextEx(uiFont, sub, 
+               (Vector2){panel.x + panelW/2 - subSize.x/2, panel.y + 180}, 
+               20, 1, DARKGRAY);
+}
+
+void RaylibApp::drawHUD(Vector2 gridPos, const Stat& st) {
+    float hudX = gridPos.x + 320; 
+
+    DrawText("SCORE", hudX, 50, 30, WHITE);
+    DrawRectangle(hudX - 55, 75, 200, 90, Fade(BLACK, 0.35f));
+    DrawText(st.strScore().c_str(), hudX + 35, 90, 60, WHITE);
+
+    DrawText("LEVEL", hudX, 550, 30, WHITE);
+    DrawRectangle(400, hudX-55, 200, 90, Fade(BLACK, 0.35f));
+    DrawText(st.strLevel().c_str(), hudX + 35, 590, 60, WHITE);
 }
 
 // Draw helper: draws 4/5 cells from current rotation + anchor
@@ -152,6 +286,19 @@ void RaylibApp::drawBlockCells(const Block& b,
     }
 }
 
+void RaylibApp::drawGrid(const Grid& g){
+    const auto palette = Colors::getColors();
+    for (int i = 0; i < g.getGridHeight(); i++) {
+        for (int j = 0; j < g.getGridWidth(); j++) {
+            float position_x = g.getPosition().x;
+            float position_y = g.getPosition().y;
+            int size = g.getSize();
+            DrawRectangle(position_x + size * j, position_y + size * i, size, size, palette[g.getColorXY(i,j)]);
+            DrawRectangleLines(position_x + size * j, position_y + size * i, size, size, palette[1]);
+        }
+    }
+}
+
 // ----------------------
 // START SCREEN (NEW UI)
 // ----------------------
@@ -161,6 +308,7 @@ void RaylibApp::drawStartScreen() {
 
     // Background with slight dark overlay
     DrawTextureEx(background, (Vector2){0.0f, 0.0f}, 0.0f, 1.0f, WHITE);
+    DrawTextureEx(background, (Vector2){(float)background.width, 0.0f}, 0.0f, 1.0f, WHITE);
     DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.35f));
 
     // Title centered
@@ -181,7 +329,7 @@ void RaylibApp::drawStartScreen() {
 
     // Central panel
     float panelW = 420.0f;
-    float panelH = 320.0f;
+    float panelH = 380.0f; // Aumentei de 320 para 380 (ou 400) para caber 4 botões
     Rectangle panel = CenterRect(screenWidth * 0.5f, screenHeight * 0.70f, panelW, panelH);
 
     // Shadow
@@ -197,11 +345,12 @@ void RaylibApp::drawStartScreen() {
     float btnW = panelW * 0.72f;
     float btnH = 56.0f;
     float cx = panel.x + panelW * 0.5f;
-    float y0 = panel.y + 70.0f;
+    float y0 = panel.y + 50.0f;
 
-    startButton        = CenterRect(cx, y0,           btnW, btnH);
-    instructionsButton = CenterRect(cx, y0 + 80.0f,   btnW, btnH);
-    exitButton         = CenterRect(cx, y0 + 160.0f,  btnW, btnH);
+    startButton        = CenterRect(cx, y0,          btnW, btnH);
+    multiplayerButton  = CenterRect(cx, y0 + 75.0f,  btnW, btnH); 
+    instructionsButton = CenterRect(cx, y0 + 150.0f, btnW, btnH); 
+    exitButton         = CenterRect(cx, y0 + 225.0f, btnW, btnH); 
 
     auto drawButton = [&](Rectangle r, const char* txt) {
         Vector2 mouse = GetMousePosition();
@@ -219,7 +368,8 @@ void RaylibApp::drawStartScreen() {
                    28.0f, 2.0f, DARKBLUE);
     };
 
-    drawButton(startButton, "PLAY");
+    drawButton(startButton, "SINGLE PLAYER");
+    drawButton(multiplayerButton, "MULTIPLAYER");
     drawButton(instructionsButton, "INSTRUCTIONS");
     drawButton(exitButton, "QUIT");
 

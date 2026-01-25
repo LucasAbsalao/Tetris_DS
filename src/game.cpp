@@ -32,20 +32,6 @@ Game::Game(int normalSpeed, int fastSpeed, float position_x, float position_y): 
                                                                                     gameOver(false)
 {}
 
-Game::Game(int normalSpeed, int fastSpeed, float position_x, float position_y):     grid(std::make_unique<Grid>(10,24,25,(Vector2){position_x,position_y},0)), 
-                                                                                    block(generateBlock()), 
-                                                                                    nextBlock(generateBlock()),
-                                                                                    stat(Stat()),
-                                                                                    position_x(position_x),
-                                                                                    position_y(position_y),
-                                                                                    normalSpeed(normalSpeed),
-                                                                                    fastSpeed(fastSpeed),
-                                                                                    actualSpeed(normalSpeed),
-                                                                                    goDown(false),
-                                                                                    delayToGoDown(0),
-                                                                                    gameOver(false)
-{}
-
 // Random integer in [min, max]
 int Game::randomInt(int min, int max) {
     std::uniform_int_distribution<int> dist(min, max);
@@ -239,7 +225,7 @@ bool Game::checkCollisionFloor() {
 }
 
 // Floor collision test at given row
-bool Game::checkCollisionFloor(int testRow) {
+bool Game::checkCollisionFloor(int testRow) const {
     for (const auto& p : block->getBlocks()) {
         int x = testRow + p.x;
         int y = block->getCol() + p.y;
@@ -252,7 +238,7 @@ bool Game::checkCollisionFloor(int testRow) {
 }
 
 // Ghost projection
-int Game::getProjectionLine() {
+int Game::getProjectionLine() const{
     for (int r = block->getRow(); r < grid->getGridHeight(); r++) {
         if (checkCollisionFloor(r)) return r;
     }
@@ -261,7 +247,7 @@ int Game::getProjectionLine() {
 
 void Game::receiveAttack(int lines){
     for(int i=0; i<lines;i++){
-        int hole = generateRandomNumber(grid->getGridWidth());
+        int hole = randomInt(0,grid->getGridWidth()-1);
         grid->receiveAttack(hole);
     }
 }
@@ -297,7 +283,8 @@ Block& Game::getNextBlockRef(){
 }
 
 void Game::spawnBlock(int x, int y, int id, int rotationState){
-    int position[2] = {x, y};
     this->block = generateSpecificBlock(id);
     (this->block)->setRotationState(rotationState);
+    (this->block)->setPosition(x,y);
+    std::cout << "Block Created: " << this->block->getId() << std::endl;
 }

@@ -33,9 +33,6 @@ class Grid
         // Returns a debug string showing the grid contents
         std::string strGrid() const;
 
-        // Draws the grid cells using the color palette
-        void draw() const;
-
         // Sets one cell to a given colorId
         void setGrid(int x, int y, int idx_color);
 
@@ -53,7 +50,7 @@ class Grid
 
         bool isThereABlockInTheLine(int line);
 
-        GridPacket toPacket(int id);
+        GridPacket toPacket(int id) const;
 
         //Receive an attack from other game;
         void receiveAttack(int hole);

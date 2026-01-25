@@ -55,7 +55,7 @@ int Stat::getScore() const {
     return score;
 }
 
-StatPacket Stat::toPacket(int id){
+StatPacket Stat::toPacket(int id) const{
     StatPacket packet;
     packet.type = MessageType::STATS;
     packet.id = id;

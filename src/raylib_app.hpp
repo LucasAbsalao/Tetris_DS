@@ -8,18 +8,22 @@
 #include "block.hpp"
 #include "grid.hpp"
 #include "stats.hpp"
+#include "matchManager.hpp"
 
 // App screens
 enum class AppState {
     StartScreen,
     Playing,
     Instructions,
+    InputUsername,
+    Multiplayer,
     Exiting
+
 };
 
 class RaylibApp {
 public:
-    RaylibApp(int screenW, int screenH, int normalSpeed, int fastSpeed);
+    RaylibApp(int screenW, int screenH, int normalSpeed, int fastSpeed, std::string serverAddress, int port);
     ~RaylibApp();
 
     void run();
@@ -32,8 +36,11 @@ private:
     // Screens
     void drawStartScreen();
     void drawInstructionsOverlay();
-    void drawGameplay();
-    void drawHUD();
+    void drawGameplayBackground();
+    void drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow);
+    void drawInputUsername();
+    void drawMatch();
+    void drawHUD(Vector2 gridPos, const Stat& st);
 
     // Helpers
     void drawBlockCells(const Block& b,
@@ -45,8 +52,9 @@ private:
 
     void buildDemoPieces();    // creates one instance of each piece
     void drawStartAnimation(); // animated “piece showcase”
+    void drawGrid(const Grid& g); // Draw grid
 
-private:
+    //Control variables    
     int screenWidth;
     int screenHeight;
     AppState state;
@@ -59,11 +67,19 @@ private:
     Rectangle startButton;
     Rectangle instructionsButton;
     Rectangle exitButton;
+    Rectangle multiplayerButton;
 
     // Start screen animation
     float startTime;
     std::vector<std::unique_ptr<Block>> demoPieces;
 
+    //Text Variables
+    char name[16] = {0}; // Max 15 chars + null terminator
+    int letterCount;
+    int framesCounter;
+    const int MAX_INPUT_CHARS = 15;
+
     // Game logic
     Game game;
+    MatchManager match;
 };

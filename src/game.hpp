@@ -42,7 +42,7 @@ class Game {
         Game(int normalSpeed, int fastSpeed, float position_x, float position_y);
         std::unique_ptr<Block> generateBlock();
         std::unique_ptr<Block> generateSpecificBlock(int id);
-        int generateRandomNumber(int limit);
+        int generateRandomNumber(int limit); 
         void draw();
         void drawUI();
         virtual void run();
@@ -55,11 +55,11 @@ class Game {
         virtual void receiveAttack(int lines); 
         bool CheckCollisionWall(char direction);
         bool checkCollisionFloor();
-        bool checkCollisionFloor(int positionX);
-        int getProjectionLine(); 
+        bool checkCollisionFloor(int positionX) const;
         void checkGameOver();
 
         bool getGameOver();
+        int getProjectionLine() const; 
         const Grid& getGrid() const;
         const Block& getCurrentBlock() const;
         const Block& getNextBlock() const;

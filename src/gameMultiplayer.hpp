@@ -15,8 +15,8 @@ class GameMultiplayer : public Game {
         bool readyToStart;
 
     public:
-        GameMultiplayer(int normalSpeed, int fast_speed, Texture2D background);
-        GameMultiplayer(int normalSpeed, int fast_speed, Texture2D background, std::shared_ptr<NetworkManager> ptr_net, const std::string& address, int port_host);
+        GameMultiplayer(int normalSpeed, int fast_speed);
+        GameMultiplayer(int normalSpeed, int fast_speed, std::shared_ptr<NetworkManager> ptr_net, const std::string& address, int port_host);
         void initNetwork();
         void connectToServer();
         virtual void run() override;

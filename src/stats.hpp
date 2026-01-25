@@ -59,7 +59,7 @@ class Stat {
         std::string strLevel() const;
 
         // Returns stat as a packet
-        StatPacket toPacket(int id);
+        StatPacket toPacket(int id) const;
 
         void setScore(int score);
         

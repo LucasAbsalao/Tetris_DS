@@ -11,7 +11,7 @@ class GameRemote : public Game {
         bool readyToStart;
 
     public:
-        GameRemote(int normalSpeed, int fastSpeed, Texture2D background, int position_x, int position_y, uint8_t id_client);
+        GameRemote(int normalSpeed, int fastSpeed, int position_x, int position_y, uint8_t id_client);
         virtual void run() override;
         virtual void moveBlock(char direction) override;
         virtual void rotateBlock() override;

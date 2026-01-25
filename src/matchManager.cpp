@@ -2,15 +2,13 @@
 
 MatchManager::MatchManager(int normalSpeed, 
                            int fastSpeed, 
-                           Texture2D background, 
                            const std::string& address, 
                            int port_host): net(std::make_shared<NetworkManager>()),
-                                           player1(normalSpeed, fastSpeed, background, net, address, port_host),
+                                           player1(normalSpeed, fastSpeed, net, address, port_host),
                                            player2(nullptr),
                                            start(false),
                                            savedNormalSpeed(normalSpeed),
-                                           savedFastSpeed(fastSpeed),
-                                           savedBackground(background)
+                                           savedFastSpeed(fastSpeed)
 {}
 
 void MatchManager::init(){
@@ -24,7 +22,7 @@ void MatchManager::createRemoteGame(UsernamePacket packet){
     }
 
     std::string name = packet.username;
-    player2 = new GameRemote(savedNormalSpeed, savedFastSpeed, savedBackground, 700, 65, packet.id);
+    player2 = new GameRemote(savedNormalSpeed, savedFastSpeed, 700, 65, packet.id);
     player2->setUsername(name);
     std::cout<<"Creating a new game with id " << packet.id << "and name " << name << "\n";
 }
@@ -141,13 +139,6 @@ void MatchManager::setLocalPlayerName(const std::string& name) {
     player1.setUsername(name);
 }
 
-void MatchManager::draw(){
-    player1.draw();
-    if (player2 != nullptr) {
-        player2->draw();
-    }
-}
-
 void MatchManager::readyToStart(){
     player1.setReady(true);
 }
@@ -158,4 +149,12 @@ MatchManager::~MatchManager(){
         delete player2;
         player2 = nullptr;
     }
+}
+
+const GameMultiplayer& MatchManager::getPlayer1() const { 
+    return player1; 
+}
+
+GameRemote* MatchManager::getPlayer2() const { 
+    return player2; 
 }

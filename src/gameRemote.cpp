@@ -2,10 +2,9 @@
 
 GameRemote::GameRemote(int normalSpeed, 
                        int fastSpeed, 
-                       Texture2D background,
                        int position_x,
                        int position_y,
-                       uint8_t id_client): Game(normalSpeed, fastSpeed, background, position_x, position_y),
+                       uint8_t id_client): Game(normalSpeed, fastSpeed, position_x, position_y),
                                            id_client(id_client),
                                            readyToStart(false)
 
@@ -23,11 +22,12 @@ void GameRemote::moveBlock(char direction){}
 
 void GameRemote::setRemoteBlock(BlockPacket packet){
     Block *block_ptr = getCurrentBlockPtr();
-    if(block_ptr!=nullptr && packet.id_block == block_ptr->getID()){
+    if(block_ptr!=nullptr && packet.id_block == block_ptr->getId()){
         block_ptr->setPosition(packet.x, packet.y);
-        block_ptr->setRotation(packet.rotation);
+        block_ptr->setRotationState(packet.rotation);
     }
     else{
+        std::cout << "Id do bloco: " << static_cast<int>(packet.id_block);
         spawnBlock(packet.x, packet.y, packet.id_block, packet.rotation);
     }
 }

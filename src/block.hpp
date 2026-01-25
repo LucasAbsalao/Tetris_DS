@@ -49,7 +49,7 @@ class Block {
         }
 
         //Packet to Network
-        BlockPacket toPacket(int id);
+        BlockPacket toPacket(int id) const;
 
         template<class charT, class charTraits>
         friend std::basic_ostream<charT,charTraits>& operator <<(std::basic_ostream<charT, charTraits>& aStream, const Block& block);
@@ -57,8 +57,8 @@ class Block {
 
 template<class charT, class charTraits>
 std::basic_ostream<charT, charTraits>& operator <<(std::basic_ostream<charT, charTraits>& aStream, const Block& block){
-    aStream << block.getPosition()[0] << ", " << block.getPosition()[1] << ": {";
-    for(int i=0;i<4;i++){
-        aStream << "(" << block.blocks.at(block.rotationState)[i].x << ", " << block.blocks.at(block.rotationState)[i].y << ") ";
+    aStream << block.getRow() << ", " << block.getCol() << ": {";
+    for (const auto& p : block.getBlocks()){
+        aStream << "(" << p.x << ", " << p.y << ") ";
     }
 }

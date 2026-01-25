@@ -1,20 +1,19 @@
 #include "gameMultiplayer.hpp"
 
-GameMultiplayer::GameMultiplayer(int normalSpeed, int fast_speed, Texture2D background): Game(normalSpeed, fast_speed, background),
-                                                                                         net(std::make_shared<NetworkManager>()),
-                                                                                         address_host("127.0.0.1"),
-                                                                                         port_host(7777),
-                                                                                         username(""),
-                                                                                         id_client(-1),
-                                                                                         readyToStart(false)
+GameMultiplayer::GameMultiplayer(int normalSpeed, int fast_speed): Game(normalSpeed, fast_speed),
+                                                                net(std::make_shared<NetworkManager>()),
+                                                                address_host("127.0.0.1"),
+                                                                port_host(7777),
+                                                                username(""),
+                                                                id_client(-1),
+                                                                readyToStart(false)
 {}
 
 GameMultiplayer::GameMultiplayer(int normalSpeed, 
                                  int fast_speed, 
-                                 Texture2D background, 
                                  std::shared_ptr<NetworkManager> ptr_net,
                                  const std::string& address, 
-                                 int port_host): Game(normalSpeed, fast_speed, background), 
+                                 int port_host): Game(normalSpeed, fast_speed), 
                                                  net(ptr_net),
                                                  address_host(address),
                                                  port_host(port_host),
@@ -51,13 +50,13 @@ void GameMultiplayer::insertBlockInGrid(){
 
 void GameMultiplayer::rotateBlock(){
     Game::rotateBlock();
-    BlockPacket packet = getBlock().toPacket(id_client);
+    BlockPacket packet = getCurrentBlock().toPacket(id_client);
     net->sendStruct(packet);
 }
 
 void GameMultiplayer::updateGridStat(int count_lines, int completed_line){
     Game::updateGridStat(count_lines, completed_line);
-    StatPacket packetStat = getStat().toPacket(id_client);
+    StatPacket packetStat = getStats().toPacket(id_client);
     GridPacket packetGrid = getGrid().toPacket(id_client);
     net->sendStruct(packetStat);
     net->sendStruct(packetGrid);
@@ -73,7 +72,7 @@ void GameMultiplayer::updateGridStat(int count_lines, int completed_line){
 
 void GameMultiplayer::moveBlock(char direction){
     Game::moveBlock(direction);
-    BlockPacket packet = getBlock().toPacket(id_client);
+    BlockPacket packet = getCurrentBlock().toPacket(id_client);
     net->sendStruct(packet, PacketType::Unreliable);
 }
 
