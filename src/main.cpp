@@ -10,8 +10,6 @@
 #define FAST_SPEED 2
 #define MAX_INPUT_CHARS 12
 
-using namespace std;
-
 enum GameState {
     START_SCREEN,
     INPUT_USERNAME,
@@ -129,6 +127,7 @@ int main(){
                 
             case PLAYING_MULTIPLAYER:
                 // if (match.getGameOver()) gameState = EXITING;
+                if(IsKeyPressed(KEY_ENTER)) match.readyToStart();
                 break;
             
             case INSTRUCTIONS:

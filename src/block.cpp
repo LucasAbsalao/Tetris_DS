@@ -2,19 +2,23 @@
 #include<iostream>
 #include"block.hpp"
 
-Block::Block(int position[2], int size, int idx_color, Color color): idx_color(idx_color), position({position[0], position[1]}), color(color), size(size), rotationState(0){
-    id = 1;
-    blocks[0] = { {0,0}, {0,1}, {1,1}, {1,2} };
-    blocks[1] = { {0,2}, {1,1}, {1,2}, {2,1} };
-    blocks[2] = { {1,0}, {1,1}, {2,1}, {2,2} };
-    blocks[3] = { {0,1}, {1,0}, {1,1}, {2,0} };
+// blocks[0] = { {0,0}, {0,1}, {1,1}, {1,0}, {2,1} };
+//     blocks[1] = { {0,0}, {0,1}, {1,1}, {1,0}, {2,1} };
+//     blocks[2] = { {0,0}, {0,1}, {1,1}, {1,0}, {2,1} };
+//     blocks[3] = { {0,0}, {0,1}, {1,1}, {1,0}, {2,1} };
+
+Block::Block(int position[2], int size, int idx_color, Color color): idx_color(idx_color), position({position[0], position[1]}), color(color), size(size), rotationState(0), id(1){
+    blocks[0] = { {0,0}, {0,1}, {1,1} };
+    blocks[1] = { {0,0}, {0,1}, {1,1} };
+    blocks[2] = { {0,0}, {0,1}, {1,1} };
+    blocks[3] = { {0,0}, {0,1}, {1,1} };
 }
 
 Block::Block(int position[2], int id, int size, int idx_color, Color color): idx_color(idx_color), position({position[0], position[1]}), color(color), id(id), size(size), rotationState(0){
-    blocks[0] = { {0,0}, {0,1}, {1,1}, {1,2} };
-    blocks[1] = { {0,2}, {1,1}, {1,2}, {2,1} };
-    blocks[2] = { {1,0}, {1,1}, {2,1}, {2,2} };
-    blocks[3] = { {0,1}, {1,0}, {1,1}, {2,0} };
+    blocks[0] = { {0,0}, {0,1}, {1,1} };
+    blocks[1] = { {0,0}, {0,1}, {1,1} };
+    blocks[2] = { {0,0}, {0,1}, {1,1} };
+    blocks[3] = { {0,0}, {0,1}, {1,1} };
 }
 
 void Block::rotate(){
@@ -75,11 +79,11 @@ void Block::draw(Vector2 offset){
     }
 }
 
-array<int,2> Block::getPosition() const{
+std::array<int,2> Block::getPosition() const{
     return position;
 }
 
-vector<Position> Block::getBlocks() const{
+std::vector<Position> Block::getBlocks() const{
     return blocks.at(rotationState);
 }
 

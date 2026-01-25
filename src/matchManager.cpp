@@ -7,6 +7,7 @@ MatchManager::MatchManager(int normalSpeed,
                            int port_host): net(std::make_shared<NetworkManager>()),
                                            player1(normalSpeed, fastSpeed, background, net, address, port_host),
                                            player2(nullptr),
+                                           start(false),
                                            savedNormalSpeed(normalSpeed),
                                            savedFastSpeed(fastSpeed),
                                            savedBackground(background)
@@ -23,10 +24,26 @@ void MatchManager::createRemoteGame(UsernamePacket packet){
     }
 
     std::string name = packet.username;
-    player2 = new GameRemote(savedNormalSpeed, savedFastSpeed, savedBackground, 700, 25, packet.id);
+    player2 = new GameRemote(savedNormalSpeed, savedFastSpeed, savedBackground, 700, 65, packet.id);
     player2->setUsername(name);
     std::cout<<"Creating a new game with id " << packet.id << "and name " << name << "\n";
 }
+
+bool MatchManager::allPlayersAreReady(){
+    return (player1.getReadyToStart() && player2->getReadyToStart());
+}
+
+void MatchManager::checkStartMatch(){
+    if(allPlayersAreReady()){
+        start = true;
+    }
+    else{
+        start = false;
+    }
+}
+// void matchManager::handlePacket(){
+
+// }
 
 void MatchManager::run() {
     net->readNetwork();
@@ -74,12 +91,49 @@ void MatchManager::run() {
                 }
                 break;
             }
+            case MessageType::GAME_OVER:{
+                if(player2 != nullptr && packet.data.size()>=sizeof(GameOverPacket)){
+                    GameOverPacket *gameoverPkt = reinterpret_cast<GameOverPacket*>(packet.data.data());
+                    if(player2->getId() == gameoverPkt->id){
+                        player2->setRemoteGameOver(*gameoverPkt);
+                        std::cout << "Player " << player2->getUsername() << " lost!!!" << "\n";
+                    }
+                }
+                break;
+            }
+            case MessageType::PLAYER_READY:{
+                if(player2 != nullptr && packet.data.size()>=sizeof(ReadyPacket)){
+                    ReadyPacket *readyPkt = reinterpret_cast<ReadyPacket*>(packet.data.data());
+                    if(player2->getId() == readyPkt->id)
+                        player2->setRemoteReady(*readyPkt);
+                }
+                break;
+            }
+            case MessageType::PLAYER_DISCONNECTED:{
+                if(player2 != nullptr && packet.data.size()>=sizeof(DisconnectPacket)){
+                    DisconnectPacket *disconPkt = reinterpret_cast<DisconnectPacket*>(packet.data.data());
+                    if(player2->getId() == disconPkt->id)
+                        std::cout << "Player " << player2->getUsername() << " Disconnected\n";
+                }
+                break;
+            }
+            case MessageType::ATTACK:{
+                if(player2 != nullptr && packet.data.size()>=sizeof(AttackPacket)){
+                    AttackPacket *attackPkt = reinterpret_cast<AttackPacket*>(packet.data.data());
+                    if(player2->getId() == attackPkt->id)
+                        player1.receiveAttack(attackPkt->lines);
+                }
+                break;
+            }
         }
     }
     
-    player1.run();
-
-    //if (player1.isGameOver()) sendDefeat();
+    if(start){
+        player1.run();
+    }
+    else{
+        checkStartMatch();
+    }
 }
 
 void MatchManager::setLocalPlayerName(const std::string& name) {

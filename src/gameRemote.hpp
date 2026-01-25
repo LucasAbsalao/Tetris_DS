@@ -26,6 +26,7 @@ class GameRemote : public Game {
         void setRemoteGrid(GridPacket packet);
         void setRemoteStat(StatPacket packet);
 
-        uint8_t getId();
-        const std::string& getUsername();
+        uint8_t getId() const;
+        bool getReadyToStart() const;
+        const std::string& getUsername() const;
 };

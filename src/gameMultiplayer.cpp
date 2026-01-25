@@ -66,7 +66,7 @@ void GameMultiplayer::updateGridStat(int count_lines, int completed_line){
 
     packetAttack.type = MessageType::ATTACK;
     packetAttack.id = this->id_client;
-    packetAttack.lines = static_cast<uint8_t>(completed_line);
+    packetAttack.lines = static_cast<uint8_t>(count_lines);
 
     net->sendStruct(packetAttack);
 }
@@ -84,6 +84,15 @@ void GameMultiplayer::setGameOver(){
     packet.type = MessageType::GAME_OVER;
     packet.id = this->id_client;
     net->sendStruct(packet);
+}
+
+void GameMultiplayer::receiveAttack(int lines){
+    if(!getGameOver()){
+        Game::receiveAttack(lines);
+
+        GridPacket packetGrid = getGrid().toPacket(id_client);
+        net->sendStruct(packetGrid);
+    }
 }
 
 void GameMultiplayer::setAddress(std::string addressIP){
@@ -114,6 +123,10 @@ void GameMultiplayer::setUsername(std::string name){
 
 int GameMultiplayer::getId(){
     return id_client;
+}
+
+bool GameMultiplayer::getReadyToStart(){
+    return this->readyToStart;
 }
 
 void GameMultiplayer::setReady(bool ready){

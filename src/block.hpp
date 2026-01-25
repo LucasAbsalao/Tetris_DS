@@ -9,12 +9,10 @@
 #include "position.hpp"
 #include"network/networkStructures.hpp"
 
-using namespace std; 
-
 class Block{
     private:
-        array<int,2> position;
-        map<int, vector<Position>> blocks;
+        std::array<int,2> position;
+        std::map<int, std::vector<Position>> blocks;
         int size;
         Color color;
         int idx_color; //TODO
@@ -32,8 +30,8 @@ class Block{
         void setRotation(int rotationState);
         void setPosition(int x, int y);
 
-        array<int,2> getPosition() const;
-        vector<Position> getBlocks() const;
+        std::array<int,2> getPosition() const;
+        std::vector<Position> getBlocks() const;
         int getColor() const;
         int getID() const;
         int *GetBoundary() const;
@@ -42,11 +40,11 @@ class Block{
         BlockPacket toPacket(int id);
         
         template<class charT, class charTraits>
-        friend basic_ostream<charT,charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block);
+        friend std::basic_ostream<charT,charTraits>& operator <<(std::basic_ostream<charT, charTraits>& aStream, const Block& block);
 };
 
 template<class charT, class charTraits>
-basic_ostream<charT, charTraits>& operator <<(basic_ostream<charT, charTraits>& aStream, const Block& block){
+std::basic_ostream<charT, charTraits>& operator <<(std::basic_ostream<charT, charTraits>& aStream, const Block& block){
     aStream << block.getPosition()[0] << ", " << block.getPosition()[1] << ": {";
     for(int i=0;i<4;i++){
         aStream << "(" << block.blocks.at(block.rotationState)[i].x << ", " << block.blocks.at(block.rotationState)[i].y << ") ";

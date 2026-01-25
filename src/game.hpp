@@ -12,16 +12,13 @@
 #include "stats.hpp"
 #include "colors.hpp"
 
-
-using namespace std;
-
 class Game
 {
     private:
-        unique_ptr<Grid> grid;
-        vector<Color> colors;
-        unique_ptr<Block> block;
-        unique_ptr<Block> nextBlock;
+        std::unique_ptr<Grid> grid;
+        std::vector<Color> colors;
+        std::unique_ptr<Block> block;
+        std::unique_ptr<Block> nextBlock;
         Texture2D backgroundImg;
         Stat stat;
 
@@ -39,7 +36,7 @@ class Game
     public:
         Game(int normalSpeed, int fast_speed, Texture2D background);
         Game(int normalSpeed, int fastSpeed, Texture2D background, float position_x, float position_y);
-        unique_ptr<Block> generateBlock();
+        std::unique_ptr<Block> generateBlock();
         int generateRandomNumber(int limit);
         void draw();
         void drawUI();
@@ -50,6 +47,7 @@ class Game
         virtual void rotateBlock();
         virtual void insertBlockInGrid();
         virtual void updateGridStat(int count_lines, int completed_line);
+        virtual void receiveAttack(int lines); //TODO: Maybe just in GameMultiplayer?
         bool CheckCollisionWall(char direction);
         bool checkCollisionFloor();
         bool checkCollisionFloor(int positionX);

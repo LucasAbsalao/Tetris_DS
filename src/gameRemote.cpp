@@ -61,10 +61,14 @@ void GameRemote::setUsername(std::string name){
     this->username = name;
 }
 
-uint8_t GameRemote::getId(){
+uint8_t GameRemote::getId() const{
     return id_client;
 }
 
-const std::string& GameRemote::getUsername(){
+bool GameRemote::getReadyToStart() const{
+    return this->readyToStart;
+}
+
+const std::string& GameRemote::getUsername() const{
     return this->username;
 }

@@ -12,14 +12,12 @@
 #include"colors.hpp"
 #include"block.hpp"
 
-using namespace std;
-
 class Grid
 {
     private:
-        vector<vector<int>> grid;
-        vector<int> check_how_many_blocks;
-        vector<Color> colors;
+        std::vector<std::vector<int>> grid;
+        std::vector<int> check_how_many_blocks;
+        std::vector<Color> colors;
         int grid_width;
         int grid_height;
         int size;
@@ -29,7 +27,7 @@ class Grid
     public:
         Grid(int grid_width, int grid_height, int size, Vector2 position);
         Grid(int grid_width, int grid_height, int size, Vector2 position, int backgroundColor);
-        string strGrid();
+        std::string strGrid();
         void draw();
         void setGrid(int x, int y, int idx_color);
         void insertBlock(Block block); //TODO: talvez modificar isso
@@ -37,9 +35,11 @@ class Grid
         void reallocateLines(int line);
         void resetLine(int idx_line);
         bool isThereABlockInTheLine(int line);
-        //TODO fazer os gets
 
         GridPacket toPacket(int id);
+
+        //Receiva an attack from other game;
+        void receiveAttack(int hole);
 
         int getBackgroundColor();
         Vector2 getPosition();

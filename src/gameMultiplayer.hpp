@@ -25,8 +25,10 @@ class GameMultiplayer : public Game {
         virtual void insertBlockInGrid() override;
         virtual void updateGridStat(int count_lines, int completed_line) override;
         virtual void setGameOver() override;
+        virtual void receiveAttack(int lines) override;
         
         int getId();
+        bool getReadyToStart();
 
         void setAddress(std::string addressIP);
         void setPortHost(int portServer);

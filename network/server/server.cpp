@@ -50,7 +50,7 @@ void Server::run(){
 }
 
 void Server::parseMessage(int sender_id, void *data){ //TODO: Check size
-    std::cout << "Parsing Message:\n";
+    std::cout << "Parsing Message: ";
     uint8_t *type = reinterpret_cast<uint8_t*>(data);
     
     if(*type == MessageType::USERNAME){
@@ -65,26 +65,32 @@ void Server::parseMessage(int sender_id, void *data){ //TODO: Check size
     }
     else if(*type == MessageType::GRID){
         GridPacket *packet = reinterpret_cast<GridPacket*>(data);
+        std::cout << "GRID -> ID: " << static_cast<int>(packet->id) << "\n";
         broadcastStruct(*packet);
     }
     else if(*type == MessageType::BLOCK){
         BlockPacket *packet = reinterpret_cast<BlockPacket*>(data);
+        std::cout << "BLOCK -> ID: " << static_cast<int>(packet->id) << "\n";
         broadcastStruct(*packet, PacketType::Unreliable);
     }
     else if(*type == MessageType::STATS){
         StatPacket *packet = reinterpret_cast<StatPacket*>(data);
+        std::cout << "STATS -> ID: " << static_cast<int>(packet->id) << "\n";
         broadcastStruct(*packet);
     }
     else if(*type == MessageType::GAME_OVER){
         GameOverPacket *packet = reinterpret_cast<GameOverPacket*>(data);
+        std::cout << "GAME_OVER -> ID: " << static_cast<int>(packet->id) << "\n";
         broadcastStruct(*packet);
     }
     else if(*type == MessageType::PLAYER_READY){
         ReadyPacket *packet = reinterpret_cast<ReadyPacket*>(data);
+        std::cout << "PLAYER_READY -> ID: " << static_cast<int>(packet->id) << "\n";
         broadcastStruct(*packet);
     }
     else if(*type == MessageType::ATTACK){
         AttackPacket *packet = reinterpret_cast<AttackPacket*>(data);
+        std::cout << "ATTACK -> ID: " << static_cast<int>(packet->id) << "\n";
         broadcastStruct(*packet);
     }
 }

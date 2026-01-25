@@ -6,7 +6,7 @@ Grid::Grid(int grid_width, int grid_height, int size, Vector2 position): grid_wi
                                                        colors(Colors::getColors()),
                                                        position(position),
                                                        backgroundColor(0),
-                                                       grid(grid_height, vector<int>(grid_width,0)),
+                                                       grid(grid_height, std::vector<int>(grid_width,0)),
                                                        check_how_many_blocks(grid_height,0)
 {}
 
@@ -16,7 +16,7 @@ Grid::Grid(int grid_width, int grid_height, int size, Vector2 position, int back
                                                        backgroundColor(backgroundColor),
                                                        colors(Colors::getColors()),
                                                        position(position),
-                                                       grid(grid_height, vector<int>(grid_width,backgroundColor)),
+                                                       grid(grid_height, std::vector<int>(grid_width,backgroundColor)),
                                                        check_how_many_blocks(grid_height,0)
 {}
 
@@ -48,9 +48,10 @@ void Grid::insertBlock(Block block){
 
 void Grid::setGrid(int x, int y, int idx_color){
     if(x >= 0 && x < grid_height && y >= 0 && y < grid_width){
+        if(idx_color!=backgroundColor && grid[x][y]==backgroundColor) check_how_many_blocks[x]++;
+        if(idx_color==backgroundColor && grid[x][y]!=backgroundColor) check_how_many_blocks[x]--;
         grid[x][y] = idx_color;
-        if(idx_color!=backgroundColor)check_how_many_blocks[x]++;
-    }
+    }//TODO: Exception
 }
 
 int Grid::getColorXY(int x, int y){
@@ -92,12 +93,30 @@ void Grid::resetLine(int idx_line){
     check_how_many_blocks[idx_line] = 0;
 }
 
-string Grid::strGrid(){
-    string str_grid;
-    for (int i=0;i<grid_height;i++){
-        str_grid += to_string(check_how_many_blocks[i]) + ": ";
+void Grid::receiveAttack(int hole){
+    for(int i=0;i<grid_height-1;i++){
+        resetLine(i);
         for(int j=0;j<grid_width;j++){
-            str_grid += to_string(grid[i][j]) + " ";
+            setGrid(i, j, grid[i+1][j]);
+        }
+    }
+
+    for(int j = 0;j < grid_width; j++){
+        if(j!=hole){
+            setGrid(grid_height-1, j, 15);
+        }
+        else{
+            setGrid(grid_height-1, j, backgroundColor);
+        }
+    }
+}
+
+std::string Grid::strGrid(){ //TODO: operator string
+    std::string str_grid;
+    for (int i=0;i<grid_height;i++){
+        str_grid += std::to_string(check_how_many_blocks[i]) + ": ";
+        for(int j=0;j<grid_width;j++){
+            str_grid += std::to_string(grid[i][j]) + " ";
         }
         str_grid += '\n';
     }

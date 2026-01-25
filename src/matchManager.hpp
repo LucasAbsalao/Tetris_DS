@@ -1,3 +1,5 @@
+#pragma once
+
 #include"gameMultiplayer.hpp"
 #include"gameRemote.hpp"
 #include"networkManager.hpp"
@@ -8,6 +10,7 @@ class MatchManager {
         int savedNormalSpeed;
         int savedFastSpeed;
         Texture2D savedBackground;
+        bool start;
 
         std::shared_ptr<NetworkManager> net;
         GameMultiplayer player1;
@@ -16,6 +19,8 @@ class MatchManager {
     public:
         MatchManager(int normalSpeed, int fast_speed, Texture2D background, const std::string& address, int port_host);
         ~MatchManager();
+        bool allPlayersAreReady();
+        void checkStartMatch();
         void readyToStart();
         void init();
         void createRemoteGame(UsernamePacket packet);

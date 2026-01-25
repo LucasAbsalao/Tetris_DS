@@ -1,6 +1,6 @@
 #include "game.hpp"
 
-Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(make_unique<Grid>(10,24,25,(Vector2){125,65},0)), 
+Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(std::make_unique<Grid>(10,24,25,(Vector2){125,65},0)), 
                                                                    colors(Colors::getColors()), 
                                                                    block(generateBlock()), 
                                                                    nextBlock(generateBlock()),
@@ -16,7 +16,7 @@ Game::Game(int normalSpeed, int fastSpeed, Texture2D background): grid(make_uniq
                                                                    gameOver(false)
 {}
 
-Game::Game(int normalSpeed, int fastSpeed, Texture2D background, float position_x, float position_y):   grid(make_unique<Grid>(10,24,25,(Vector2){position_x,position_y},0)), 
+Game::Game(int normalSpeed, int fastSpeed, Texture2D background, float position_x, float position_y):   grid(std::make_unique<Grid>(10,24,25,(Vector2){position_x,position_y},0)), 
                                                                                                         colors(Colors::getColors()), 
                                                                                                         block(generateBlock()), 
                                                                                                         nextBlock(generateBlock()),
@@ -67,15 +67,15 @@ void Game::drawUI(){ //TODO: Automatizar os valores de score e level para eles f
     //DrawText(grid->strGrid().c_str(), 900, 20, 20, {255,255,255,255});
 }
 
-unique_ptr<Block> Game::generateBlock(){
+std::unique_ptr<Block> Game::generateBlock(){
     int position[2] = {0,grid->getGridWidth()/2};
     int idx = generateRandomNumber(colors.size()-2) + 1;
-    return make_unique<Block>(position, grid->getSize(), idx, colors[idx]);
+    return std::make_unique<Block>(position, grid->getSize(), idx, colors[idx]);
 }
 
 int Game::generateRandomNumber(int limit){
-    mt19937 gerador(std::time(0));     
-    uniform_int_distribution<int> distribuicao(0, limit);
+    std::mt19937 gerador(std::time(0));     
+    std::uniform_int_distribution<int> distribuicao(0, limit);
     return distribuicao(gerador);
 }
 
@@ -197,6 +197,13 @@ int Game::getProjectionLine(){
         }
     }
     return -1;
+}
+
+void Game::receiveAttack(int lines){
+    for(int i=0; i<lines;i++){
+        int hole = generateRandomNumber(grid->getGridWidth());
+        grid->receiveAttack(hole);
+    }
 }
 
 bool Game::getGameOver(){
