@@ -68,7 +68,7 @@ void Game::drawUI(){ //TODO: Automatizar os valores de score e level para eles f
 }
 
 unique_ptr<Block> Game::generateBlock(){
-    int position[2] = {0,grid->getGridWidth()/2};//{0,generateRandomNumber(grid_width-3)};//TODO: Talvez tirar essa geração aleatória
+    int position[2] = {0,grid->getGridWidth()/2};
     int idx = generateRandomNumber(colors.size()-2) + 1;
     return make_unique<Block>(position, grid->getSize(), idx, colors[idx]);
 }
@@ -121,8 +121,12 @@ void Game::insertBlockInGrid(){
 
 void Game::checkGameOver(){
     if(grid->isThereABlockInTheLine(0)){
-        gameOver = true;
+        setGameOver();
     }
+}
+
+void Game::setGameOver(){
+    this->gameOver = true;
 }
 
 void Game::getMovement(){

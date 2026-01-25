@@ -6,7 +6,8 @@ GameRemote::GameRemote(int normalSpeed,
                        int position_x,
                        int position_y,
                        uint8_t id_client): Game(normalSpeed, fastSpeed, background, position_x, position_y),
-                                           id_client(id_client)
+                                           id_client(id_client),
+                                           readyToStart(false)
 
 {} 
 
@@ -46,10 +47,24 @@ void GameRemote::setRemoteStat(StatPacket packet){
     s.setLevel(packet.level);
 }
 
+void GameRemote::setRemoteGameOver(GameOverPacket packet){
+    if(packet.id == this->id_client){
+        setGameOver();
+    }
+}
+
+void GameRemote::setRemoteReady(ReadyPacket packet){
+    this->readyToStart = packet.ready;
+}
+
 void GameRemote::setUsername(std::string name){
     this->username = name;
 }
 
 uint8_t GameRemote::getId(){
     return id_client;
+}
+
+const std::string& GameRemote::getUsername(){
+    return this->username;
 }

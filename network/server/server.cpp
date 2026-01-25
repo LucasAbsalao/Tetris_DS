@@ -75,6 +75,18 @@ void Server::parseMessage(int sender_id, void *data){ //TODO: Check size
         StatPacket *packet = reinterpret_cast<StatPacket*>(data);
         broadcastStruct(*packet);
     }
+    else if(*type == MessageType::GAME_OVER){
+        GameOverPacket *packet = reinterpret_cast<GameOverPacket*>(data);
+        broadcastStruct(*packet);
+    }
+    else if(*type == MessageType::PLAYER_READY){
+        ReadyPacket *packet = reinterpret_cast<ReadyPacket*>(data);
+        broadcastStruct(*packet);
+    }
+    else if(*type == MessageType::ATTACK){
+        AttackPacket *packet = reinterpret_cast<AttackPacket*>(data);
+        broadcastStruct(*packet);
+    }
 }
 
 void Server::handlePacket(){ //TODO: Test if the messageType variable is already initialized the right way

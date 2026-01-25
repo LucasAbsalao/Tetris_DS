@@ -12,6 +12,7 @@ class GameMultiplayer : public Game {
         int port_host;
         std::string username;
         uint8_t id_client;
+        bool readyToStart;
 
     public:
         GameMultiplayer(int normalSpeed, int fast_speed, Texture2D background);
@@ -23,6 +24,7 @@ class GameMultiplayer : public Game {
         virtual void rotateBlock() override;
         virtual void insertBlockInGrid() override;
         virtual void updateGridStat(int count_lines, int completed_line) override;
+        virtual void setGameOver() override;
         
         int getId();
 
@@ -30,4 +32,5 @@ class GameMultiplayer : public Game {
         void setPortHost(int portServer);
         void setID(SetIdPacket packet);
         void setUsername(std::string name);
+        void setReady(bool ready);
 };

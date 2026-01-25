@@ -55,6 +55,7 @@ class Game
         bool checkCollisionFloor(int positionX);
         int getProjectionLine(); 
         void checkGameOver();
+
         bool getGameOver();
         Block getBlock();
         Block getNextBlock();
@@ -67,5 +68,6 @@ class Game
         Block* getCurrentBlockPtr();
         Grid& getGridRef();
         Stat& getStatRef();
+        virtual void setGameOver();
         void spawnBlock(int x, int y, int id, int rotationState);
 };

@@ -93,6 +93,11 @@ void MatchManager::draw(){
     }
 }
 
+void MatchManager::readyToStart(){
+    player1.setReady(true);
+}
+
+
 MatchManager::~MatchManager(){
     if (player2 != nullptr) {
         delete player2;

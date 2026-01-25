@@ -14,9 +14,11 @@ enum MessageType : uint8_t {
     GRID = 1,
     STATS = 2,
     BLOCK = 3,
-    PLAYER_CONNECTED = 4,
+    PLAYER_READY = 4,
     PLAYER_DISCONNECTED = 5,
-    SET_ID = 6 
+    SET_ID = 6,
+    GAME_OVER = 7,
+    ATTACK = 8
 };
 
 #pragma pack(push, 1)
@@ -35,6 +37,23 @@ struct UsernamePacket{
 struct SetIdPacket{
     MessageType type = MessageType::SET_ID;
     uint8_t id;
+};
+
+struct GameOverPacket{
+    MessageType type = MessageType::GAME_OVER;
+    uint8_t id;
+};
+
+struct ReadyPacket{
+    MessageType type = MessageType::PLAYER_READY;
+    uint8_t id;
+    bool ready;
+};
+
+struct AttackPacket{
+    MessageType type = MessageType::ATTACK;
+    uint8_t id;
+    uint8_t lines;
 };
 
 struct DisconnectPacket{

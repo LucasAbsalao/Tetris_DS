@@ -5,7 +5,8 @@ GameMultiplayer::GameMultiplayer(int normalSpeed, int fast_speed, Texture2D back
                                                                                          address_host("127.0.0.1"),
                                                                                          port_host(7777),
                                                                                          username(""),
-                                                                                         id_client(-1)
+                                                                                         id_client(-1),
+                                                                                         readyToStart(false)
 {}
 
 GameMultiplayer::GameMultiplayer(int normalSpeed, 
@@ -18,7 +19,8 @@ GameMultiplayer::GameMultiplayer(int normalSpeed,
                                                  address_host(address),
                                                  port_host(port_host),
                                                  username(""),
-                                                 id_client(-1)
+                                                 id_client(-1),
+                                                 readyToStart(false)
 {} 
 
 void GameMultiplayer::initNetwork(){ // TODO: Exception
@@ -37,7 +39,8 @@ void GameMultiplayer::connectToServer(){
 
 void GameMultiplayer::run(){
     //net->readingMsg();
-    Game::run();
+    if(readyToStart && id_client!=-1)
+        Game::run();
 }
 
 void GameMultiplayer::insertBlockInGrid(){
@@ -58,12 +61,29 @@ void GameMultiplayer::updateGridStat(int count_lines, int completed_line){
     GridPacket packetGrid = getGrid().toPacket(id_client);
     net->sendStruct(packetStat);
     net->sendStruct(packetGrid);
+
+    AttackPacket packetAttack;
+
+    packetAttack.type = MessageType::ATTACK;
+    packetAttack.id = this->id_client;
+    packetAttack.lines = static_cast<uint8_t>(completed_line);
+
+    net->sendStruct(packetAttack);
 }
 
 void GameMultiplayer::moveBlock(char direction){
     Game::moveBlock(direction);
     BlockPacket packet = getBlock().toPacket(id_client);
     net->sendStruct(packet, PacketType::Unreliable);
+}
+
+void GameMultiplayer::setGameOver(){
+    Game::setGameOver();
+
+    GameOverPacket packet;
+    packet.type = MessageType::GAME_OVER;
+    packet.id = this->id_client;
+    net->sendStruct(packet);
 }
 
 void GameMultiplayer::setAddress(std::string addressIP){
@@ -78,7 +98,7 @@ void GameMultiplayer::setID(SetIdPacket packet){
     std::cout<<"My id: " << packet.id << "\n";
     this->id_client = packet.id;
 
-    UsernamePacket namePacket;
+    UsernamePacket namePacket = {};
     namePacket.type = MessageType::USERNAME;
     namePacket.id = this->id_client;
 
@@ -94,4 +114,16 @@ void GameMultiplayer::setUsername(std::string name){
 
 int GameMultiplayer::getId(){
     return id_client;
+}
+
+void GameMultiplayer::setReady(bool ready){
+    this->readyToStart = ready;
+
+    ReadyPacket packet;
+
+    packet.type = MessageType::PLAYER_READY;
+    packet.id = id_client;
+    packet.ready = this->readyToStart;
+
+    net->sendStruct(packet);
 }

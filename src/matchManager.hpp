@@ -16,6 +16,7 @@ class MatchManager {
     public:
         MatchManager(int normalSpeed, int fast_speed, Texture2D background, const std::string& address, int port_host);
         ~MatchManager();
+        void readyToStart();
         void init();
         void createRemoteGame(UsernamePacket packet);
         void setLocalPlayerName(const std::string& name);
