@@ -32,7 +32,6 @@ void GameRemote::setRemoteBlock(BlockPacket packet){
         block_ptr->setRotationState(packet.rotation);
     }
     else{
-        std::cout << "Id do bloco: " << static_cast<int>(packet.id_block) << std::endl;
         spawnBlock(packet.x, packet.y, packet.id_block, packet.rotation);
     }
 }

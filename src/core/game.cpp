@@ -306,5 +306,4 @@ void Game::spawnBlock(int x, int y, int id, int rotationState){
     this->block = generateSpecificBlock(id);
     (this->block)->setRotationState(rotationState);
     (this->block)->setPosition(x,y);
-    std::cout << "Block Created: " << this->block->getId() << std::endl;
 }
