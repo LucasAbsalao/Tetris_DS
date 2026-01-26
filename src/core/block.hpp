@@ -26,8 +26,6 @@ class Block {
 
         // Rotate to next rotation
         virtual void rotate();
-        //void drawProjection(Vector2 offset, int line);
-
 
         // Move anchor
         void move(int dRow, int dCol);

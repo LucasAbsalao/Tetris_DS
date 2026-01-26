@@ -46,15 +46,33 @@ sudo apt install libenet-dev
 Si vous souhaitez héberger une partie sur internet sans configurer votre routeur, installez l'agent Playit.
 
 
+**Méthode recommandée :**
+```bash
+curl -SsL [https://playit-cloud.github.io/ppa/key.gpg](https://playit-cloud.github.io/ppa/key.gpg) | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] [https://playit-cloud.github.io/ppa/data](https://playit-cloud.github.io/ppa/data) ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
+sudo apt update
+sudo apt install playit
+```
+**Alternative (si le dépôt est déjà configuré) :**
 ```bash
 # Installation via le dépôt officiel (Ubuntu/Debian)
 sudo apt update
 sudo apt install playit
+```
 
 # Pour lancer l'agent après l'installation :
+```bash
 playit
 ```
 
+Si cette installation ne marche pas, utilise:
+
+ ```bash
+curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
+sudo apt update
+sudo apt install playit
+```
 
 ---
 
@@ -130,13 +148,13 @@ Gère toute la couche de communication (basée sur la librairie ENet).
 
 Contient la logique pure du jeu Tetris (indépendante du rendu graphique et du réseau).
 
-Game : Classe mère gérant la boucle de jeu principale, le timing et la gravité.
+* Game : Classe mère gérant la boucle de jeu principale, le timing et la gravité.
 
-Grid : Représente la matrice de jeu (le puits 10x20), gère les collisions et la suppression des lignes complètes.
+* Grid : Représente la matrice de jeu (le puits 10x20), gère les collisions et la suppression des lignes complètes.
 
-Block / Tetrominoes : Définit les formes géométriques, les systèmes de rotation et les coordonnées.
+* Block / Tetrominoes : Définit les formes géométriques, les systèmes de rotation et les coordonnées.
 
-Stats : Gère le score, le niveau actuel et les statistiques des blocs utilisés.
+* Stats : Gère le score, le niveau actuel et les statistiques des blocs utilisés.
 
 ### 📂 `src/utils/`
 
@@ -171,21 +189,91 @@ Gère l'interface utilisateur et le lien avec Raylib.
 
 M : retour au menu principal
 
-Échap : quitter le jeu
-
 ---
 
 ## Concepts Objet
 
-* Utilisation de la STL (Standard Template Library) :
+### Utilisation de la STL (Standard Template Library) :
 
-  * `std::vector` : Pour la gestion dynamique de la grille de jeu et le stockage des positions des blocs.
+* `std::vector` : Pour la gestion dynamique de la grille de jeu et le stockage des positions des blocs.
 
-  * `std::map` : Utilisé côté serveur pour mapper les ID de connexions réseau (ENetPeer) aux identifiants uniques des joueurs (ClientData).
+* `std::map` : Utilisé côté serveur pour mapper les ID de connexions réseau (ENetPeer) aux identifiants uniques des joueurs (ClientData).
 
-  * `std::array` : Pour définir les points de la classe Stat.
+* `std::array` : Pour définir les points de la classe Stat.
 
-  * `std::queue` : Pour la gestion des messages réseau entrants dans le tampon.
+* `std::queue` : Pour la gestion des messages réseau entrants dans le tampon.
+
+### Héritage (Héritage de classes)
+
+#### Classe de Base (Game) : 
+Contient la logique commune (gravité, collision, score).
+
+Classes Dérivées : 
+  * GameMultiplayer : Étend Game pour le joueur local avec envoi de données réseau.
+
+  *GameRemote : Spécialise Game pour représenter l'adversaire (logique passive).
+
+#### Types de Blocs : 
+  * Utilisation de l'héritage pour définir les formes spécifiques (I, O, T, etc.) à partir d'une classe Block générique.
+
+### Polymorphisme (Comportements spécifiques)
+Méthodes Virtuelles (virtual) : Redéfinition des fonctions comme run(), moveBlock() ou rotateBlock().
+
+Substitution de Comportement : 
+  * Le joueur local (Multiplayer) génère des paquets lors d'un mouvement.
+
+  * L'adversaire (Remote) ignore les entrées clavier et attend les données du serveur.
+
+Extension de Code : Capacité d'exécuter des actions différentes à travers une interface commune.
+
+### Utilisation des Pointeurs Intelligents (Smart Pointers)
+L'utilisation de std::unique_ptr et std::shared_ptr permet une gestion automatique de la mémoire et évite les fuites (memory leaks).
+
+* `std::unique_ptr` (Propriété unique) :
+
+  * Utilisé pour les objets dont le cycle de vie est strictement lié à une seule classe.
+
+  * Application : La classe Game possède l'exclusivité sur la Grid, le Block actuel et le Next Block.
+
+  * Avantage : Libération automatique de la mémoire dès que l'objet Game est détruit.
+
+* `std::shared_ptr` (Propriété partagée) :
+
+  * Utilisé lorsqu'un objet doit être accédé par plusieurs composants du programme.
+
+  * Application : Le NetworkManager est partagé entre le MatchManager (pour envoyer des données) et la classe Game (pour recevoir les attaques).
+
+  * Avantage : L'objet reste en mémoire tant qu'au moins un composant l'utilise.
+
+### Flux et Itérateurs
+Surcharge de l'opérateur de flux (`operator<<`) :
+
+* Utilisée pour le debug rapide des objets (classe Block).
+
+* Permet d'afficher l'état interne d'un objet directement dans la console (std::cout).
+
+Itérateurs de la STL :
+
+* Utilisation des itérateurs de la classe std::vector pour parcourir les statistiques.
+
+### Gestion des Erreurs (Exceptions) :
+
+* Utilisation de std::exception para sécuriser l'initialisation de la bibliothèque ENet.
+
+* Exception spécifique pour gérer l'échec de connexion au serveur (Timeout/Host unreachable).
+
+### Multithreading (Modèle Producteur-Consommateur) :
+
+* Implémentation dans le NetworkManager pour un traitement asynchrone des paquets.
+
+* Gestion de la concurrence : Utilisation de deux Mutex pour protéger la file d'attente (Queue) et les appels aux fonctions ENet.
+
+### Généricité (Templates) :
+
+* Utilisation de fonctions Templates pour l'envoi de paquets.
+
+* Permet de gérer de manière générique les différentes structures de données de paquets (GridPacket, AttackPacket, etc.).
+
 
 ## 🌐 Configuration du Tunnel (Playit.gg)
 
