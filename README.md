@@ -74,6 +74,7 @@ Le serveur doit être actif pour permettre aux clients de se connecter. Il gère
 
 Pour compiler et lancer le serveur (exemple avec g++) :
 ```bash
+mkdir server/build
 g++ src/network/clientData.cpp server/server.cpp server/main.cpp -lenet -o server/build/server.out 
 ./server/build/server.out
 ```
