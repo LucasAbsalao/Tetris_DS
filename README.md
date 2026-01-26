@@ -89,6 +89,14 @@ make run
 ```
 
 ### 3. Connexion
+Le jeu utilise un fichier de configuration nommé config.txt situé à la racine du projet. Ce fichier permet de définir l'adresse du serveur sans modifier le code source.
+
+Configuration via config.txt :
+Le fichier doit contenir l'adresse IP (ou le nom d'hôte) suivie du port, séparés par un espace. Exemple de contenu :
+
+```text
+127.0.0.1 7788
+```
 
 Localhost (test local)
 - Si le serveur et les clients sont sur la même machine, utilisez :
@@ -100,7 +108,7 @@ Localhost (test local)
 - Internet (Playit.gg)
 Pour jouer à distance sans ouvrir les ports du routeur, l’utilisation d’un tunnel comme playit.gg est recommandée.
 Lancez le tunnel sur la machine serveur et utilisez l’adresse publique fournie par le service dans le code client.
-(La dernière partie du README).
+(Detailles dans la dernière partie du README).
 
 ---
 

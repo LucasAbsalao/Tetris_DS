@@ -63,7 +63,7 @@ std::unique_ptr<Block> Game::generateBlock() {
     }
 }
 
-// Generate a new piece (avoids same id twice)
+// Generate a new piece by id
 std::unique_ptr<Block> Game::generateSpecificBlock(int id) {
     switch (id) {
         case 1: return std::make_unique<LBlock>();
