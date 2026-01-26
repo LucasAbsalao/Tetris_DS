@@ -277,7 +277,7 @@ Itérateurs de la STL :
 * Permet de gérer de manière générique les différentes structures de données de paquets (GridPacket, AttackPacket, etc.).
 
 
-## 🌐 Configuration du Tunnel (Playit.gg)
+## Configuration du Tunnel (Playit.gg)
 
 Pour rendre votre serveur accessible depuis internet sans modifier la configuration de votre routeur (Port Forwarding), suivez ces étapes :
 
