@@ -38,7 +38,7 @@ void GameMultiplayer::connectToServer(){
 
 void GameMultiplayer::run(){
     //net->readingMsg();
-    if(readyToStart && id_client!=-1)
+    if(readyToStart && id_client!=-1) //A game will start just if all the players are ready
         Game::run();
 }
 
@@ -50,7 +50,7 @@ void GameMultiplayer::insertBlockInGrid(){
 
 void GameMultiplayer::rotateBlock(){
     Game::rotateBlock();
-    BlockPacket packet = getCurrentBlock().toPacket(id_client);
+    BlockPacket packet = getCurrentBlock().toPacket(id_client); //notify the other players your block's actual position
     net->sendStruct(packet);
 }
 
@@ -65,14 +65,14 @@ void GameMultiplayer::updateGridStat(int count_lines, int completed_line){
 
     packetAttack.type = MessageType::ATTACK;
     packetAttack.id = this->id_client;
-    packetAttack.lines = static_cast<uint8_t>(count_lines);
+    packetAttack.lines = static_cast<uint8_t>(count_lines); //Send an attack packet to your rival
 
     net->sendStruct(packetAttack);
 }
 
 void GameMultiplayer::moveBlock(char direction){
     Game::moveBlock(direction);
-    BlockPacket packet = getCurrentBlock().toPacket(id_client);
+    BlockPacket packet = getCurrentBlock().toPacket(id_client); //notify the other players your block's actual position
     net->sendStruct(packet, PacketType::Unreliable);
 }
 
@@ -80,7 +80,7 @@ void GameMultiplayer::setGameOver(){
     Game::setGameOver();
 
     GameOverPacket packet;
-    packet.type = MessageType::GAME_OVER;
+    packet.type = MessageType::GAME_OVER; //Notify the other players that you lost
     packet.id = this->id_client;
     net->sendStruct(packet);
 }
@@ -89,7 +89,7 @@ void GameMultiplayer::receiveAttack(int lines){
     if(!getGameOver()){
         Game::receiveAttack(lines);
 
-        GridPacket packetGrid = getGrid().toPacket(id_client);
+        GridPacket packetGrid = getGrid().toPacket(id_client); //Receive an attack and send a packet about your grid situation
         net->sendStruct(packetGrid);
     }
 }
@@ -103,15 +103,15 @@ void GameMultiplayer::setPortHost(int portServer){
 }
 
 void GameMultiplayer::setID(SetIdPacket packet){
-    std::cout<<"My id: " << packet.id << "\n";
+    std::cout<<"My id: " << packet.id << "\n"; 
     this->id_client = packet.id;
 
-    UsernamePacket namePacket = {};
+    UsernamePacket namePacket = {}; //Send your username to the server
     namePacket.type = MessageType::USERNAME;
     namePacket.id = this->id_client;
 
     std::strncpy(namePacket.username, this->username.c_str(), sizeof(namePacket.username) - 1);
-    namePacket.username[USERNAME_MAX_LENGTH - 1] = '\0'; // Garante o nulo
+    namePacket.username[USERNAME_MAX_LENGTH - 1] = '\0'; // Make sure the last character is \0
 
     net->sendStruct(namePacket);
 }
@@ -133,7 +133,7 @@ void GameMultiplayer::setReady(bool ready){
 
     ReadyPacket packet;
 
-    packet.type = MessageType::PLAYER_READY;
+    packet.type = MessageType::PLAYER_READY; //Send a packet notifying that you are ready to start
     packet.id = id_client;
     packet.ready = this->readyToStart;
 

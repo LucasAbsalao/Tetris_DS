@@ -10,7 +10,7 @@ GameRemote::GameRemote(int normalSpeed,
                                            readyToStart(false)
 
 {} 
-
+//Those functions don't do anything in a remote game
 void GameRemote::run(){}
 
 void GameRemote::insertBlockInGrid(){}
@@ -27,12 +27,12 @@ void GameRemote::wasDisconnected(){
 
 void GameRemote::setRemoteBlock(BlockPacket packet){
     Block *block_ptr = getCurrentBlockPtr();
-    if(block_ptr!=nullptr && packet.id_block == block_ptr->getId()){
+    if(block_ptr!=nullptr && packet.id_block == block_ptr->getId()){ //If the block received is the same of the last one, update position and rotation state
         block_ptr->setPosition(packet.x, packet.y);
         block_ptr->setRotationState(packet.rotation);
     }
     else{
-        spawnBlock(packet.x, packet.y, packet.id_block, packet.rotation);
+        spawnBlock(packet.x, packet.y, packet.id_block, packet.rotation); //If it is another block, the code will create a new block
     }
 }
 

@@ -48,7 +48,7 @@ class GameRemote : public Game {
         // the local copy of the opponent's grid with the server data.
         void setRemoteGrid(GridPacket packet);
 
-        // Updates score, level, and lines based on a STATS packet.
+        // Updates score and level based on a STATS packet.
         void setRemoteStat(StatPacket packet);
 
         // --- Getters ---
