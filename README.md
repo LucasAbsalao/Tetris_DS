@@ -45,10 +45,9 @@ sudo apt install libenet-dev
 
 Si vous souhaitez héberger une partie sur internet sans configurer votre routeur, installez l'agent Playit.
 
-Bash
-# Installation via le dépôt officiel (Ubuntu/Debian)
 
 ```bash
+# Installation via le dépôt officiel (Ubuntu/Debian)
 sudo apt update
 sudo apt install playit
 
@@ -66,8 +65,8 @@ Le serveur doit être actif pour permettre aux clients de se connecter. Il gère
 
 Pour compiler et lancer le serveur (exemple avec g++) :
 ```bash
-g++ server/server.cpp src/network/*.cpp -o bin/server -lenet -pthread
-./bin/server
+g++ src/network/clientData.cpp server/server.cpp server/main.cpp -lenet -o server/build/server.out 
+./server/build/server.out
 ```
 
 ### 2. Lancer le Jeu (Client)
@@ -92,6 +91,7 @@ Localhost (test local)
 - Internet (Playit.gg)
 Pour jouer à distance sans ouvrir les ports du routeur, l’utilisation d’un tunnel comme playit.gg est recommandée.
 Lancez le tunnel sur la machine serveur et utilisez l’adresse publique fournie par le service dans le code client.
+(La dernière partie du README).
 
 ---
 
@@ -174,6 +174,18 @@ M : retour au menu principal
 Échap : quitter le jeu
 
 ---
+
+## Concepts Objet
+
+* Utilisation de la STL (Standard Template Library) :
+
+  * `std::vector` : Pour la gestion dynamique de la grille de jeu et le stockage des positions des blocs.
+
+  * `std::map` : Utilisé côté serveur pour mapper les ID de connexions réseau (ENetPeer) aux identifiants uniques des joueurs (ClientData).
+
+  * `std::array` : Pour définir les points de la classe Stat.
+
+  * `std::queue` : Pour la gestion des messages réseau entrants dans le tampon.
 
 ## 🌐 Configuration du Tunnel (Playit.gg)
 

@@ -1,2 +1,2 @@
 Command to execute the server:
-g++ ../src/network/clientData.cpp server.cpp main.cpp -lenet -o build/server.out && ./build/server.out
+g++ src/network/clientData.cpp server/server.cpp server/main.cpp -lenet -o server/build/server.out && .server/build/server.out
