@@ -65,15 +65,6 @@ sudo apt install playit
 playit
 ```
 
-Si cette installation ne marche pas, utilise:
-
- ```bash
-curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
-echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
-sudo apt update
-sudo apt install playit
-```
-
 ---
 
 ## 🚀 Comment Exécuter
@@ -204,12 +195,12 @@ M : retour au menu principal
 
 ### Héritage (Héritage de classes)
 #### Classe de Base (Game) : 
-Contient la logique commune (gravité, collision, score).
+* Contient la logique commune (gravité, collision, score).
 
-Classes Dérivées : 
+* Classes Dérivées : 
   * GameMultiplayer : Étend Game pour le joueur local avec envoi de données réseau.
 
-  *GameRemote : Spécialise Game pour représenter l'adversaire (logique passive).
+  * GameRemote : Spécialise Game pour représenter l'adversaire (logique passive).
 
 #### Types de Blocs : 
   * Utilisation de l'héritage pour définir les formes spécifiques (I, O, T, etc.) à partir d'une classe Block générique.
