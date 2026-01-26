@@ -1,19 +1,19 @@
 # Tetris Multijoueur - Projet de POO
 
-## 📝 Introduction
+## Introduction
 
 Ce projet est une implémentation complète du jeu Tetris en C++, réalisée dans le cadre d'un module de Programmation Orientée Objet (POO).
 
 Au-delà de la reproduction des mécaniques classiques du jeu, ce projet se distingue par l'intégration d'une architecture **Multijoueur en temps réel**. Grâce à une gestion réseau personnalisée, deux joueurs peuvent s'affronter : les lignes complétées par l'un sont envoyées comme "malus" (lignes grises) à l'adversaire, ajoutant une dimension compétitive stratégique.
 
-## 🛠️ Prérequis et Technologies
+## Prérequis et Technologies
 
 Le projet repose sur les bibliothèques suivantes :
 * **Raylib** : Pour le rendu graphique et la gestion des entrées (fenêtrage, audio, textures).
 * **ENet** : Pour la communication réseau UDP fiable (gestion des paquets, connexions).
 * **C++17** (ou supérieur) : Le standard utilisé pour le développement.
 
-## 📦 Installation des Dépendances (Linux/Ubuntu/Debian)
+## Installation des Dépendances (Linux/Ubuntu/Debian)
 
 Pour compiler le projet, vous devez installer les bibliothèques nécessaires. Ouvrez un terminal et exécutez les commandes suivantes :
 
@@ -67,7 +67,7 @@ playit
 
 ---
 
-## 🚀 Comment Exécuter
+## Comment Exécuter
 
 ### 1. Lancer le Serveur
 Le serveur doit être actif pour permettre aux clients de se connecter. Il gère le relais des paquets entre les joueurs.
@@ -113,10 +113,10 @@ Lancez le tunnel sur la machine serveur et utilisez l’adresse publique fournie
 ---
 
 
-## 📂 Architecture du Projet
+## Architecture du Projet
 Le code source est organisé de manière modulaire pour respecter les principes d'encapsulation et de séparation des responsabilités.
 
-### 📂 `src/server/`
+### `src/server/`
 
 Contient le point d'entrée du serveur dédié.
 
@@ -126,7 +126,7 @@ Contient le point d'entrée du serveur dédié.
 
 * Gestion : S'occupe de l'appariement (matchmaking simple) et détecte les déconnexions.
 
-### 📂 `src/network/`
+### `src/network/`
 
 Gère toute la couche de communication (basée sur la librairie ENet).
 
@@ -151,7 +151,7 @@ Gère toute la couche de communication (basée sur la librairie ENet).
 
 * GameRemote : Version du jeu pour l'adversaire. Ne répond pas au clavier, mais se met à jour via les paquets reçus.
 
-### 📂 `src/core/`
+### `src/core/`
 
 Contient la logique pure du jeu Tetris (indépendante du rendu graphique et du réseau).
 
@@ -163,7 +163,7 @@ Contient la logique pure du jeu Tetris (indépendante du rendu graphique et du r
 
 * Stats : Gère le score, le niveau actuel et les statistiques des blocs utilisés.
 
-### 📂 `src/utils/`
+### `src/utils/`
 
 Contient les structures utilitaires légères utilisées partout dans le projet.
 
@@ -171,7 +171,7 @@ Contient les structures utilitaires légères utilisées partout dans le projet.
 
 * Colors : Gestion centralisée des palettes de couleurs pour les tétrominos et l'interface utilisateur.
 
-### 📂 `src/graphics/`
+### `src/graphics/`
 Gère l'interface utilisateur et le lien avec Raylib.
 
 * RaylibApp : La classe principale de l'application. Elle :
@@ -184,15 +184,15 @@ Gère l'interface utilisateur et le lien avec Raylib.
 
 ---
 
-## 🎮 Commandes
+## Commandes
 
-⬅️ / ➡️ Flèches gauche / droite : déplacer la pièce latéralement
+Flèches gauche / droite : déplacer la pièce latéralement
 
-⬆️ Flèche haut : rotation de la pièce
+Flèche haut : rotation de la pièce
 
-⬇️ Flèche bas : accélérer la chute (Soft Drop)
+Flèche bas : accélérer la chute (Soft Drop)
 
-⏎ Entrée : démarrer la partie / rejouer
+Entrée : démarrer la partie / rejouer
 
 M : retour au menu principal
 
