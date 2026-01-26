@@ -34,7 +34,7 @@ void Stat::updateLevel() {
         level = 3;
     } else if (score >= 1500) {
         level = 2;
-    } else if (score >= 400) {
+    } else if (score >= 200) {
         level = 1;
     }
 }

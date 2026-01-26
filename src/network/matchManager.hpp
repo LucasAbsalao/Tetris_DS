@@ -46,10 +46,7 @@ class MatchManager {
         // True if the match can begin.
         bool allPlayersAreReady();
 
-
-        // Polls the NetworkManager for new packets.
-        // Acts as a "Dispatcher": reads the packet Type (GRID, BLOCK, ATTACK, etc.) 
-        // and routes the data to `player2->setRemote...()` or `player1`.
+        // reads the packet Type (GRID, BLOCK, ATTACK, etc.) and routes the data to `player2->setRemote...()` or `player1`.
         void handlePacket();
 
         //If allPlayersAreReady() is true, sets the 'start' flag to true.

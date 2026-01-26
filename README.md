@@ -13,6 +13,50 @@ Le projet repose sur les bibliothèques suivantes :
 * **ENet** : Pour la communication réseau UDP fiable (gestion des paquets, connexions).
 * **C++17** (ou supérieur) : Le standard utilisé pour le développement.
 
+## 📦 Installation des Dépendances (Linux/Ubuntu/Debian)
+
+Pour compiler le projet, vous devez installer les bibliothèques nécessaires. Ouvrez un terminal et exécutez les commandes suivantes :
+
+### 1. Raylib (Rendu Graphique)
+Ces commandes installent les dépendances, téléchargent le code source et compilent la librairie en mode partagé (shared).
+
+```bash
+# Dépendances de build
+sudo apt install build-essential git cmake
+
+# Dépendances graphiques et audio
+sudo apt install libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
+
+# Cloner et compiler Raylib
+git clone [https://github.com/raysan5/raylib.git](https://github.com/raysan5/raylib.git) raylib
+cd raylib/src/
+make PLATFORM=PLATFORM_DESKTOP RAYLIB_LIBTYPE=SHARED
+sudo make install RAYLIB_LIBTYPE=SHARED
+```
+
+### 2. ENet (Réseau)
+La bibliothèque ENet est nécessaire pour la communication UDP.
+
+```bash
+sudo apt install libenet-dev
+```
+
+3. Playit.gg (Optionnel - Pour l'hébergement)
+
+Si vous souhaitez héberger une partie sur internet sans configurer votre routeur, installez l'agent Playit.
+
+Bash
+# Installation via le dépôt officiel (Ubuntu/Debian)
+
+```bash
+sudo apt update
+sudo apt install playit
+
+# Pour lancer l'agent après l'installation :
+playit
+```
+
+
 ---
 
 ## 🚀 Comment Exécuter
@@ -55,33 +99,34 @@ Lancez le tunnel sur la machine serveur et utilisez l’adresse publique fournie
 ## 📂 Architecture du Projet
 Le code source est organisé de manière modulaire pour respecter les principes d'encapsulation et de séparation des responsabilités.
 
-### 📂 src/server/
+### 📂 `src/server/`
 
 Contient le point d'entrée du serveur dédié.
 
-Rôle : Gère une map des clients connectés et leurs IDs.
+* Rôle : Gère une map des clients connectés et leurs IDs.
 
-Relais : Reçoit les paquets d'un joueur (mouvement, grille, attaque) et les transfère immédiatement à son adversaire.
+* Relais : Reçoit les paquets d'un joueur (mouvement, grille, attaque) et les transfère immédiatement à son adversaire.
 
-Gestion : S'occupe de l'appariement (matchmaking simple) et détecte les déconnexions.
+* Gestion : S'occupe de l'appariement (matchmaking simple) et détecte les déconnexions.
 
-### 📂 src/network/
+### 📂 `src/network/`
 
 Gère toute la couche de communication (basée sur la librairie ENet).
 
-NetworkManager : Classe centrale qui gère l'envoi et la réception des paquets dans un thread séparé (sécurisé par des Mutex) pour éviter de bloquer le rendu graphique.
+* NetworkManager : Classe centrale qui gère l'envoi et la réception des paquets dans un thread séparé (sécurisé par des Mutex) pour éviter de bloquer le rendu graphique.
 
-NetworkStructures : Fichier définissant les structs utilisées pour le protocole binaire. Il assure l'alignement mémoire (#pragma pack) pour :
+* NetworkStructures : Fichier définissant les structs utilisées pour le protocole binaire. Il assure l'alignement mémoire (#pragma pack) pour :
 
-UsernamePacket : Envoi du pseudo.
+    * `UsernamePacket` : Envoi du pseudo.
+    * `StatsPacket` : Envoi du Score et du Niveau.
+    * `GridPacket` : Synchronisation de la grille.
+    * `BlockPacket` : Mouvement de la pièce courante.
+    * `AttackPacket` : Envoi des lignes de malus.
+    * `SetIdPacket` : Envoi de l'identifiant unique.
+    * `GameOverPacket` : Notification de fin de partie (Game Over).
+    * `PlayerReadyPacket` : Confirmation d'être prêt à jouer.
 
-GridPacket : Synchronisation de la grille.
-
-BlockPacket : Mouvement de la pièce courante.
-
-AttackPacket : Envoi des lignes de malus.
-
-### 📂 src/core/
+### 📂 `src/core/`
 
 Contient la logique pure du jeu Tetris (indépendante du rendu graphique et du réseau).
 
@@ -93,24 +138,26 @@ Block / Tetrominoes : Définit les formes géométriques, les systèmes de rotat
 
 Stats : Gère le score, le niveau actuel et les statistiques des blocs utilisés.
 
-### 📂 src/utils/
+### 📂 `src/utils/`
 
 Contient les structures utilitaires légères utilisées partout dans le projet.
 
-Position : Structure simple (row, col) pour manipuler les coordonnées dans la grille.
+* Position : Structure simple (row, col) pour manipuler les coordonnées dans la grille.
 
-Colors : Gestion centralisée des palettes de couleurs pour les tétrominos et l'interface utilisateur.
+* Colors : Gestion centralisée des palettes de couleurs pour les tétrominos et l'interface utilisateur.
 
-### 📂 src/graphics/
+### 📂 `src/graphics/`
 Gère l'interface utilisateur et le lien avec Raylib.
 
-RaylibApp : La classe principale de l'application. Elle :
+* RaylibApp : La classe principale de l'application. Elle :
 
-Initialise la fenêtre et charge les ressources (textures, polices).
+  * Initialise la fenêtre et charge les ressources (textures, polices).
 
-Gère la machine à états de l'application (Menu, Jeu, Multiplayer, GameOver).
+  * Gère la machine à états de l'application (Menu, Jeu, Multiplayer, GameOver).
 
-Dessine l'état du jeu (le Grid local et distant) à chaque frame.
+  * Dessine l'état du jeu (le Grid local et distant) à chaque frame.
+
+---
 
 ## 🎮 Commandes
 
@@ -125,3 +172,40 @@ Dessine l'état du jeu (le Grid local et distant) à chaque frame.
 M : retour au menu principal
 
 Échap : quitter le jeu
+
+---
+
+## 🌐 Configuration du Tunnel (Playit.gg)
+
+Pour rendre votre serveur accessible depuis internet sans modifier la configuration de votre routeur (Port Forwarding), suivez ces étapes :
+
+### 1. Lancer l'Agent
+Sur la machine qui exécute le serveur de jeu (`./bin/server`), ouvrez un terminal et lancez l'agent :
+```bash
+playit
+```
+Le terminal affichera un lien unique ressemblant à : https://playit.gg/claim/xxxxxx
+
+### 2. Accéder au Tableau de Bord
+
+Copiez ce lien et ouvrez-le dans votre navigateur web.
+
+Si vous n'avez pas de compte, le site vous proposera de continuer en tant qu'Invité (Guest) ou de Créer un compte. Les deux fonctionnent.
+
+### 3. Créer le Tunnel
+
+Une fois l'agent lié à votre compte via le navigateur :
+
+- Cliquez sur "Add Tunnel".
+
+- Sélectionnez "Custom".
+
+- Choisissez le protocole UDP (Impératif car ENet utilise UDP).
+
+- Dans le champ Local Port, entrez le port sur lequel votre serveur C++ écoute (par défaut 7788 dans ce projet).
+
+- Validez la création ("Add Tunnel").
+
+### 4. Récupérer l'Adresse Publique
+
+Playit va générer une adresse publique (ex: sierra-tunnel.playit.gg:14590). Les joueurs distants devront utiliser cette adresse pour se connecter.

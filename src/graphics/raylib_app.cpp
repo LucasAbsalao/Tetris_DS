@@ -240,7 +240,7 @@ void RaylibApp::processInput() {
         // Back to menu (does not close the window)
         if (IsKeyPressed(KEY_M) || IsKeyPressed(KEY_BACKSPACE)) {
             state = AppState::StartScreen;
-            game = Game(sNormalSpeed, sFastSpeed);
+            game = Game(sNormalSpeed, sFastSpeed,500, 65);
         }
 
         // Quit game

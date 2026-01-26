@@ -26,6 +26,7 @@ class Game {
         int normalSpeed;
         int fastSpeed;
         int actualSpeed;
+        int originalSpeed;
         bool goDown;
         bool gameOver;
 
@@ -53,6 +54,7 @@ class Game {
         virtual void insertBlockInGrid();
         virtual void updateGridStat(int count_lines, int completed_line);
         virtual void receiveAttack(int lines); 
+        void changeSpeed(int level);
         bool CheckCollisionWall(char direction);
         bool checkCollisionFloor();
         bool checkCollisionFloor(int positionX) const;

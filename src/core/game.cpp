@@ -3,6 +3,7 @@
 Game::Game(int normalSpeed, int fastSpeed)
     : grid(std::make_unique<Grid>(10, 24, 25, (Vector2){125, 65}, 0)),
       stat(Stat()),
+      originalSpeed(normalSpeed),
       normalSpeed(normalSpeed),
       fastSpeed(fastSpeed),
       actualSpeed(normalSpeed),
@@ -24,6 +25,7 @@ Game::Game(int normalSpeed, int fastSpeed, float position_x, float position_y): 
                                                                                     stat(Stat()),
                                                                                     position_x(position_x),
                                                                                     position_y(position_y),
+                                                                                    originalSpeed (normalSpeed),
                                                                                     normalSpeed(normalSpeed),
                                                                                     fastSpeed(fastSpeed),
                                                                                     actualSpeed(normalSpeed),
@@ -94,6 +96,20 @@ void Game::run(){
 void Game::updateGridStat(int count_lines, int completed_line){
     stat.update(count_lines);
     grid->reallocateLines(completed_line);
+    changeSpeed(stat.getLevel());
+
+}
+
+void Game::changeSpeed(int level){
+    int factor = (int)((originalSpeed - fastSpeed)/4);
+    this->normalSpeed = (int)(originalSpeed - (factor*level));
+    
+    if (this->normalSpeed < fastSpeed) this->normalSpeed = fastSpeed; // Limit speed
+    
+    // Update actual speed if its not fastSpeed
+    if (actualSpeed != fastSpeed) {
+        actualSpeed = normalSpeed;
+    }
 }
 
 void Game::update(){
