@@ -194,7 +194,6 @@ M : retour au menu principal
 ## Concepts Objet
 
 ### Utilisation de la STL (Standard Template Library) :
-
 * `std::vector` : Pour la gestion dynamique de la grille de jeu et le stockage des positions des blocs.
 
 * `std::map` : Utilisé côté serveur pour mapper les ID de connexions réseau (ENetPeer) aux identifiants uniques des joueurs (ClientData).
@@ -204,7 +203,6 @@ M : retour au menu principal
 * `std::queue` : Pour la gestion des messages réseau entrants dans le tampon.
 
 ### Héritage (Héritage de classes)
-
 #### Classe de Base (Game) : 
 Contient la logique commune (gravité, collision, score).
 
@@ -257,19 +255,16 @@ Itérateurs de la STL :
 * Utilisation des itérateurs de la classe std::vector pour parcourir les statistiques.
 
 ### Gestion des Erreurs (Exceptions) :
-
 * Utilisation de std::exception para sécuriser l'initialisation de la bibliothèque ENet.
 
 * Exception spécifique pour gérer l'échec de connexion au serveur (Timeout/Host unreachable).
 
 ### Multithreading (Modèle Producteur-Consommateur) :
-
 * Implémentation dans le NetworkManager pour un traitement asynchrone des paquets.
 
 * Gestion de la concurrence : Utilisation de deux Mutex pour protéger la file d'attente (Queue) et les appels aux fonctions ENet.
 
 ### Généricité (Templates) :
-
 * Utilisation de fonctions Templates pour l'envoi de paquets.
 
 * Permet de gérer de manière générique les différentes structures de données de paquets (GridPacket, AttackPacket, etc.).
