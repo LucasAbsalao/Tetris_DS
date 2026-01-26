@@ -10,32 +10,41 @@ NetworkManager::~NetworkManager(){
 
     std::cout << "\n\n----------------------- Deleting the client -----------------------\n";
 
-    if(client!=nullptr && peer != nullptr){
-        enet_peer_disconnect(peer, 0);
+    if(client != nullptr && peer != nullptr) {
+        std::cout << "pre disconnect" << client << " " << peer << "\n";
 
-        while(enet_host_service(client, &event, 5000)>0){
-            switch(event.type){
-                case ENET_EVENT_TYPE_RECEIVE:
-                {
-                    enet_packet_destroy(event.packet);
-                    break;
-                }
-                case ENET_EVENT_TYPE_DISCONNECT:
-                {
-                    std::cout << "Disconnection succeeded!\n";
-                    break;
-                }
+        enet_peer_disconnect(peer, 0);
+        std::cout << "post disconnect";
+
+        ENetEvent event;
+
+        bool disconnected = false;
+        while(enet_host_service(client, &event, 500) > 0) {
+            if (event.type == ENET_EVENT_TYPE_RECEIVE) {
+                enet_packet_destroy(event.packet);
+            } 
+            else if (event.type == ENET_EVENT_TYPE_DISCONNECT) {
+                std::cout << "Disconnection succeeded!\n";
+                disconnected = true;
+                this->peer = nullptr;
+                break;
             }
         }
-        enet_peer_reset (peer);
+        std::cout << "Pos analaise dos pacotes\n";
+
+        if(!disconnected) {
+            std::cout << "Forcing peer reset...\n";
+            enet_peer_reset(peer);
+        }
+    }
+
+    if(client != nullptr) {
+        enet_host_destroy(client);
+        client = nullptr;
     }
 }
 
 void NetworkManager::initEnet(){
-    if(enet_initialize()!=0){
-        throw EnetException("Could not Initialize ENET.");
-    }
-    atexit(enet_deinitialize);
 }
 
 void NetworkManager::initClient(int port){

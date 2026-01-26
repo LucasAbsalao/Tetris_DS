@@ -36,7 +36,7 @@ void GameRemote::setRemoteBlock(BlockPacket packet){
     }
 }
 
-void GameRemote::setRemoteGrid(GridPacket packet){
+void GameRemote::setRemoteGrid(GridPacket packet){ //Completely overwrites the local copy of the opponent's grid with the server data.
     Grid& g = getGridRef();
     for(int i=0;i<packet.lines;i++){
         for(int j=0;j<packet.columns;j++){
@@ -45,7 +45,7 @@ void GameRemote::setRemoteGrid(GridPacket packet){
     }
 }
 
-void GameRemote::setRemoteStat(StatPacket packet){
+void GameRemote::setRemoteStat(StatPacket packet){ //Updates score and level based on a STATS packet.
     Stat& s = getStatRef();
     s.setScore(packet.score);
     s.setLevel(static_cast<int>(packet.level));

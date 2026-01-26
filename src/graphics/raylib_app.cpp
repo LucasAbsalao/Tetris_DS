@@ -229,6 +229,7 @@ void RaylibApp::processInput() {
         if (IsKeyPressed(KEY_M) || IsKeyPressed(KEY_BACKSPACE)) {
             state = AppState::StartScreen;
             match = std::make_unique<MatchManager>(sNormalSpeed, sFastSpeed, sServerAddress, sPort);
+            std::cout << "Returning\n";
         }
     }  
     else if (state == AppState::Playing) {
@@ -286,7 +287,8 @@ void RaylibApp::draw() {
                         match->getPlayer2()->getStats(), 
                         -1,
                         false,
-                        false); // Geralmente não desenhamos o ghost do oponente
+                        false,
+                        match->getPlayer2()->getUsername());
         }
         //Draw local player
         drawGameplay(match->getPlayer1().getGrid(), 
@@ -294,7 +296,8 @@ void RaylibApp::draw() {
                     match->getPlayer1().getStats(), 
                     match->getPlayer1().getProjectionLine(),
                     match->getEnd(),
-                    match->getWin());
+                    match->getWin(),
+                    match->getPlayer1().getUsername());
     }
     else if (state == AppState::InputUsername) drawInputUsername();
     else drawStartScreen();
@@ -308,7 +311,7 @@ void RaylibApp::drawGameplayBackground(){
     DrawTextureEx(background, (Vector2){(float)background.width, 0.0f}, 0.0f, 1.0f, WHITE);
 }
 
-void RaylibApp::drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow, bool gameOver, bool win) {
+void RaylibApp::drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow, bool gameOver, bool win, std::string name) {
     // Draw the grid
     drawGrid(g);
 
@@ -323,13 +326,13 @@ void RaylibApp::drawGameplay(const Grid& g, const Block& b, const Stat& st, int 
     // Current block
     drawBlockCells(b, g, b.getRow(), b.getCol(), fill, false);
 
-    // Draw ghost piece (apenas se houver projeção)
+    // Draw ghost piece
     if (projRow != -1) {
         drawBlockCells(b, g, projRow, b.getCol(), fill, true);
     }
 
     // Draw Hud
-    drawHUD(g.getPosition(), st);
+    drawHUD(g.getPosition(), st, name);
 
     //Draw GameOver Screen
     if (gameOver) {
@@ -386,12 +389,16 @@ void RaylibApp::drawInputUsername() {
                20, 1, DARKGRAY);
 }
 
-void RaylibApp::drawHUD(Vector2 gridPos, const Stat& st) {
+void RaylibApp::drawHUD(Vector2 gridPos, const Stat& st, std::string name) {
     float hudX = gridPos.x + 320; 
 
     DrawText("SCORE", hudX, 50, 30, WHITE);
     DrawRectangle(hudX - 55, 75, 200, 90, Fade(BLACK, 0.35f));
     DrawText(st.strScore().c_str(), hudX + 35, 90, 60, WHITE);
+    DrawText(st.strScore().c_str(), hudX + 35, 90, 60, WHITE);
+
+    DrawRectangle(hudX - 315, 15, MeasureText(name.c_str(), 30)+10, 40, Fade(BLACK, 0.35f));
+    DrawText(name.c_str(), hudX - 310, 20, 30, WHITE);
 
     // Next block box
     DrawText("NEXT", hudX, 190, 30, WHITE);

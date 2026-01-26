@@ -20,7 +20,8 @@ GameMultiplayer::GameMultiplayer(int normalSpeed,
                                                  username(""),
                                                  id_client(-1),
                                                  readyToStart(false)
-{} 
+{
+} 
 
 void GameMultiplayer::initNetwork(){
     std::cout << "Multiplayer: Initializing Enet\n";
@@ -138,4 +139,8 @@ void GameMultiplayer::setReady(bool ready){
     packet.ready = this->readyToStart;
 
     net->sendStruct(packet);
+}
+
+const std::string& GameMultiplayer::getUsername() const{
+    return this->username;
 }

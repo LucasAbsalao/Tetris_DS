@@ -42,10 +42,10 @@ private:
     void drawStartScreen();
     void drawInstructionsOverlay();
     void drawGameplayBackground();
-    void drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow, bool gameOver, bool win);
+    void drawGameplay(const Grid& g, const Block& b, const Stat& st, int projRow, bool gameOver, bool win, std::string name = "");
     void drawInputUsername();
     void drawMatch();
-    void drawHUD(Vector2 gridPos, const Stat& st);
+    void drawHUD(Vector2 gridPos, const Stat& st, std::string name);
 
     // Helpers
     void drawBlockCells(const Block& b,

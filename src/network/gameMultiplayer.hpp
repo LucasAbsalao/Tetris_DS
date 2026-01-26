@@ -72,4 +72,7 @@ class GameMultiplayer : public Game {
 
         // Toggles the ready state and sends the PLAYER_READY packet to the server.
         void setReady(bool ready);
+
+        //Get username
+        const std::string& getUsername() const;
 };
