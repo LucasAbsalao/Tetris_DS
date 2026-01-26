@@ -41,7 +41,7 @@ La bibliothèque ENet est nécessaire pour la communication UDP.
 sudo apt install libenet-dev
 ```
 
-3. Playit.gg (Optionnel - Pour l'hébergement)
+### 3. Playit.gg (Optionnel - Pour l'hébergement)
 
 Si vous souhaitez héberger une partie sur internet sans configurer votre routeur, installez l'agent Playit.
 
@@ -142,6 +142,14 @@ Gère toute la couche de communication (basée sur la librairie ENet).
     * `SetIdPacket` : Envoi de l'identifiant unique.
     * `GameOverPacket` : Notification de fin de partie (Game Over).
     * `PlayerReadyPacket` : Confirmation d'être prêt à jouer.
+
+* MatchManager : Classe qui fait le lien entre le réseau et le jeu. Il reçoit les paquets et met à jour les instances de Game.
+
+* ClientData : Structure utilisée par le serveur pour stocker les infos de chaque joueur (ID, username).
+
+* GameMultiplayer : Version du jeu pour le joueur local. Envoie ses mouvements au réseau à chaque action.
+
+* GameRemote : Version du jeu pour l'adversaire. Ne répond pas au clavier, mais se met à jour via les paquets reçus.
 
 ### 📂 `src/core/`
 
